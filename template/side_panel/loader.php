@@ -6,4 +6,6 @@
  * @js true
 */
 ?>
-<div class="panel-side"></div>
+<div class="side-panel">
+  <div class="side-panel-data"></div>
+</div>

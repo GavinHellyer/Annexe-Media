@@ -116,9 +116,7 @@ class core {
 
       $tokens = token_get_all($source);
       if ($tokens) {
-        //printR($_file);
         foreach ($tokens as $token) {
-          //printR($token[0]);
           if (in_array($token[0], array(367, 365, 310, 311))) {
             preg_match_all('/(@)(.[^ ]*)( )(.[^\n]*)/', $token[1], $matches);
             if ($matches) {
@@ -133,6 +131,14 @@ class core {
       }
     }
     return $comments;
+  }
+  
+  public function get_file_name($file) {
+    $file = pathinfo($file, PATHINFO_FILENAME);
+    $file = str_replace("_", " ", $file);
+    $file = ucwords($file);
+    
+    return $file;
   }
 
   public function sort_object($object, $dir = false) {

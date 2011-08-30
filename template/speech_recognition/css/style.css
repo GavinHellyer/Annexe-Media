@@ -3,22 +3,22 @@
 */
 .btn-speech-recognition {
   position: fixed;
-  top: 5px;
-  left: 5px;
-  width: 50px;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
 }
 
 .btn-speech-recognition input {
-  position: absolute;
-  margin-left: 10px;
-  color: transparent;
+  border: none;
   background-color: transparent;
-  border: 0;
-  width: 15px;
-  height: 40px;
-  -webkit-transform: scale(3.0,3.0);
-  -moz-transform: scale(3.0,3.0);
-  -ms-transform: scale(3.0,3.0);
-  transform: scale(3.0,3.0);
+  color: transparent;
+  -webkit-transform: scale(2.0,2.0);
+  width: 16px;
+  height: 20px;
   z-index: 100;
+  cursor: pointer;
+}
+
+.btn-speech-recognition input:focus {
+  outline: none;
 }

@@ -6,15 +6,34 @@ jQuery(function($) {
     jQuery(this).side_panel_hide();
   });
   
-  jQuery('.panel-side').live("click", function(e) {
+  jQuery('.side-panel').live("click", function(e) {
     e.stopPropagation();
+  });
+  
+  jQuery('.side-panel-container').live('mouseenter', function() {
+    jQuery('.side-panel-container-content', this).stop(true, true).slideDown(400);
+  });
+  
+  jQuery('.side-panel-container').live('mouseleave', function() {
+    jQuery('.side-panel-container-content', this).stop(true, true).slideUp(400);
   });
 });
 
+jQuery.fn.side_panel_add_item = function(header, content) {
+  var html = '<div class="side-panel-container">' +
+    '<div class="side-panel-container-header">'+header+'</div>' +
+    '<div class="side-panel-container-content">'+content+'</div>' +
+  '</div>';
+  jQuery('.side-panel-data').append(html);
+  jQuery('.side-panel-container').animate({
+    'width': '100%'
+  }, 400);
+}
+
 jQuery.fn.side_panel_show = function() {
-  var width = parseInt(jQuery('.panel-side').css('width'));
+  var width = parseInt(jQuery('.side-panel').css('width'));
   if (width == 0) {
-    jQuery('.panel-side').stop(true, true).animate({
+    jQuery('.side-panel').stop(true, true).animate({
       'width': '45%'
     }, 400);
     return true;
@@ -23,9 +42,9 @@ jQuery.fn.side_panel_show = function() {
 };
 
 jQuery.fn.side_panel_hide = function() {
-  var width = parseInt(jQuery('.panel-side').css('width'));
+  var width = parseInt(jQuery('.side-panel').css('width'));
   if (width > 0) {
-    jQuery('.panel-side').stop(true, true).animate({
+    jQuery('.side-panel').stop(true, true).animate({
       'width': '0px'
     }, 400);
     return true;

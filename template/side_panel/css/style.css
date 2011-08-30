@@ -1,11 +1,11 @@
 /**
  * @ver 1.0
 */
-.panel-side {
+.side-panel {
+  overflow: hidden;
   position: fixed;
-  top: 0;
+  top: 5%;
   right: 0;
-  margin-top: 5%;
   -webkit-border-top-left-radius: 20px;
   -webkit-border-bottom-left-radius: 20px;
   background-image: -webkit-gradient(linear,
@@ -13,7 +13,42 @@
     color-stop(0, rgba(0, 76, 124, 0.8)),
     color-stop(1, rgba(0, 0, 0, 0.8))
   );
-  width: 45%;
+  width: 0px;
   height: 90%;
+  min-height: 60px;
   z-index: 10;
+}
+
+.side-panel-data {
+  padding: 15px 15px 0 15px;
+  margin-bottom: 15px;
+}
+
+.side-panel-container {
+  overflow: hidden;
+  margin-bottom: 5px;
+  border: 1px solid #C0C0C0;
+  -webkit-border-radius: 5px;
+  width: 0px;
+}
+
+.side-panel-container-header {
+  padding: 5px;
+  background-image: -webkit-gradient(linear,
+    left top, left bottom,
+    color-stop(1, #C0C0C0),
+    color-stop(0, #FFFFFF)
+  );
+  font-size: 16px;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  text-shadow: 1px 1px 0px #FFFFFF;
+  white-space: nowrap;
+  color: #032B44;
+}
+
+.side-panel-container-content {
+  display: none;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
 }

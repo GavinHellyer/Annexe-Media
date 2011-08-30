@@ -7,5 +7,5 @@
 */
 ?>
 <div class="btn-speech-recognition">
-  <input type="text" x-webkit-speech />
+  <input type="text" id="speed-recognition" x-webkit-speech />
 </div>

@@ -8,6 +8,7 @@ class template extends effects {
   private $_current_page;
   private $_css;
   private $_js;
+  private $_actions;
   
   public function __construct() {
     parent::__construct();
@@ -112,10 +113,8 @@ class template extends effects {
 
           $module_output = "<!-- Loading Module: ".((isset($comments->module)) ? $comments->module : $module)." v".$comments->ver." -->\n";
           $module_output .= ((isset($comments->description)) ? "<!-- Module Description: ".$comments->description." -->\n" : '');
-          $module_output .= '<div class="mod-'.str_replace('_', '-', $module).'">'."\n";
-          $module_output .= IND.$this->format_output(require_once($load_module), 1);
+          $module_output .= require_once($load_module);
           $module_output .= "\n";
-          $module_output .= '</div>'."\n";
           $module_output .= "<!-- Module End: ".((isset($comments->module)) ? $comments->module : $module)." -->\n";
 
           echo $this->format_output($module_output, $indent);
@@ -126,6 +125,36 @@ class template extends effects {
         echo "<!-- Failed To Load Module: ".$module." - Template Class Not Loaded -->\n";
       }
     }
+  }
+  
+  public function apply_action($action = false, $arg = '') {
+    if ($action) {
+      if (isset($this->_actions->$action)) {
+        $this->_actions->$action = $this->sort_object($this->_actions->$action);
+        foreach ($this->_actions->$action as $targets) {
+          foreach ($targets as $target) {
+            if (function_exists($target->target)) {
+              call_user_func($target->target, $target->arg);
+            }
+          }
+        }
+      }
+      return true;
+    }
+    return $this->error("Action Cannot Be Blank");
+  }
+  
+  public function add_action($action = false, $target = false, $priority = 10, $arg = '') {
+    if ($action && $target) {
+      if (!isset($this->_actions->$action->$priority)) {
+        $this->_actions->$action->$priority = array();
+      }
+      $add = $this->_actions->$action->$priority;
+      $bt = debug_backtrace();
+      $add[] = array('target' => $target, 'arg' => $arg, 'origin' => $this->get_file_name($bt[0]['file']));
+      $this->_actions->$action->$priority = $add;
+    }
+    return $this->error("Action/Target Cannot Be Blank");
   }
 
   public function apply_template($template, $args = "") {
@@ -144,12 +173,10 @@ class template extends effects {
         $this->_js->temp->$template = $comments->js;
       }
 
-      $content = '<div class="temp-'.str_replace('_', '-', $template).'">'."\n";
       ob_start();
       require_once($this->_files->tempRoot.$template.'/loader.php');
-      $content .= IND.$this->format_output(ob_get_contents(), 1);
+      $content = ob_get_contents();
       ob_end_clean();
-      $content .= '</div>';
 
       return $content;
     }
