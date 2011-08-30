@@ -1,6 +1,6 @@
 <?php
 define('SERVER_ROOT', dirname(__FILE__).'/');
-define('SERVER_HOST', "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
+define('SERVER_HOST', "http://".$_SERVER['HTTP_HOST'].str_replace('index.php', '', $_SERVER['PHP_SELF']));
 
 require_once('api/api.php');
 
