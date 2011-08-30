@@ -1,0 +1,17 @@
+/**
+ * @ver 1.0
+*/
+.btn-settings {
+  position: fixed;
+  top: 5px;
+  right: 5px;
+  background: url(../img/icon_30x30.png) 0 0 no-repeat;
+  width: 30px;
+  height: 30px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.btn-settings:hover {
+  opacity: 1;
+}

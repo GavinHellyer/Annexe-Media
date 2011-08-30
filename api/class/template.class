@@ -1,0 +1,231 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 60
+ */
+class template extends effects {
+  private $_full_page;
+  private $_current_page;
+  private $_css;
+  private $_js;
+  
+  public function __construct() {
+    parent::__construct();
+    define('LOADED_TEMPLATE', true);
+  }
+
+  public function load_base_template() {
+    ob_start();
+    require_once(SERVER_ROOT.'header.php'); echo "\n";
+    $this->_full_page->header = ob_get_contents();
+    ob_clean();
+    require_once(SERVER_ROOT.'footer.php'); echo "\n";
+    $this->_full_page->footer = ob_get_contents();
+    ob_end_clean();
+
+    return $this;
+  }
+
+  public function execute_template() {
+    ob_start();
+    require_once(SERVER_ROOT.$this->_current_page.'.php'); echo "\n";
+    $this->_full_page->content = ob_get_contents();
+    ob_end_clean();
+    
+    $this->insert_cssjs();
+
+    echo $this->_full_page->header;
+    echo $this->_full_page->content;
+    echo $this->_full_page->footer;
+  }
+
+  public function insert_cssjs() {
+    ob_start();
+    if ($this->_css) {
+      foreach ($this->_css as $type => $loader) {
+        foreach ($loader as $name => $file) {
+          if ($file) {
+            $css = ($file === true) ? 'style.css' : $file;
+            $id = $type.'-'.$name;
+            $this->load_file($name.'/css/'.$css, $id, $type);
+          }
+        }
+      }
+    }
+    $css = substr($this->format_output(ob_get_contents()), 0, -1);
+    $css = ($css) ? "\n  ".$css : '';
+    ob_clean();
+    if ($this->_js) {
+      foreach ($this->_js as $type => $loader) {
+        foreach ($loader as $name => $file) {
+          if ($file) {
+            $js = ($file === true) ? 'script.js' : $file;
+            $id = $type.'-'.$name;
+            $this->load_file($name.'/js/'.$js, $id, $type);
+          }
+        }
+      }
+    }
+    $js = substr($this->format_output(ob_get_contents()), 0, -1);
+    $js = ($js) ? "\n  ".$js : '';
+    ob_clean();
+
+    $this->_full_page->header = sprintf($this->_full_page->header, $css, $js);
+
+    ob_end_clean();
+  }
+
+  public function set_current_page($page = false) {
+    if ($page) {
+      if (file_exists(SERVER_ROOT.$page.'.php')) {
+        $this->_current_page = $page;
+        
+        return $this;
+      }
+      $this->error('Page Not Found');
+      return $this;
+    }
+    $this->error('Cannot Load Blank Page');
+    return $this;
+  }
+
+  public function load_module($module, $args = "") {
+    $load_module = $this->_files->modRoot.$module.'/loader.php';
+    if (file_exists($load_module)) {
+      if (is_array($args)) {
+        extract($args);
+      }
+      if (defined('LOADED_TEMPLATE')) {
+        if ($this->check_access($load_module)) {
+          $bt = debug_backtrace();
+          $indent = $this->get_indent($bt[0]['file'], $bt[0]['line']);
+
+          $comments = $this->get_file_comments($this->_files->modRoot.$module.'/loader.php');
+
+          if (isset($comments->css)) {
+            $this->_css->mod->$module = $comments->css;
+          }
+
+          if (isset($comments->js)) {
+            $this->_js->mod->$module = $comments->js;
+          }
+
+          $module_output = "<!-- Loading Module: ".((isset($comments->module)) ? $comments->module : $module)." v".$comments->ver." -->\n";
+          $module_output .= ((isset($comments->description)) ? "<!-- Module Description: ".$comments->description." -->\n" : '');
+          $module_output .= '<div class="mod-'.str_replace('_', '-', $module).'">'."\n";
+          $module_output .= IND.$this->format_output(require_once($load_module), 1);
+          $module_output .= "\n";
+          $module_output .= '</div>'."\n";
+          $module_output .= "<!-- Module End: ".((isset($comments->module)) ? $comments->module : $module)." -->\n";
+
+          echo $this->format_output($module_output, $indent);
+        } else {
+          echo "<!-- Module: ".$module." - Not Loaded -->\n";
+        }
+      } else {
+        echo "<!-- Failed To Load Module: ".$module." - Template Class Not Loaded -->\n";
+      }
+    }
+  }
+
+  public function apply_template($template, $args = "") {
+    if (file_exists($this->_files->tempRoot.$template.'/loader.php')) {
+      if (is_array($args)) {
+        extract($args);
+      }
+
+      $comments = $this->get_file_comments($this->_files->tempRoot.$template.'/loader.php');
+
+      if (isset($comments->css)) {
+        $this->_css->temp->$template = $comments->css;
+      }
+
+      if (isset($comments->js)) {
+        $this->_js->temp->$template = $comments->js;
+      }
+
+      $content = '<div class="temp-'.str_replace('_', '-', $template).'">'."\n";
+      ob_start();
+      require_once($this->_files->tempRoot.$template.'/loader.php');
+      $content .= IND.$this->format_output(ob_get_contents(), 1);
+      ob_end_clean();
+      $content .= '</div>';
+
+      return $content;
+    }
+    return $this->error("Could Not Load Template");
+  }
+
+  function format_output($output, $indent = 1) {
+    $ind = $this->convert($indent);
+    $output = str_replace("\n", "\n".$ind, $output)."\n";
+    $output = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $output);
+    $output = trim($output)."\n";
+    return $output;
+  }
+
+  function convert($indent) {
+    $ind = '';
+    for($i = 0; $i < $indent; $i++) {
+      $ind .= IND;
+    }
+    return $ind;
+  }
+
+  function get_indent($file, $line) {
+    if (file_exists($file)) {
+      $lines = file($file);
+      $line = $lines[$line-1];
+
+      preg_match('/^(\s*)/', $line, $indent);
+
+      return ceil(strlen($indent[0])/2);
+    }
+    return 1;
+  }
+
+  public function load_file($file, $id = false, $type = false) {
+    $ext = $this->get_file_extension($file);
+    switch ($ext) {
+      case 'css':
+        if (file_exists($this->_files->cssRoot.$file)) {
+          $_file_src = $this->_files->css.$file;
+          $_file_server = $this->_files->cssRoot.$file;
+          echo '<link rel="stylesheet" type="text/css" href="'.$_file_src.'?ver='.$this->get_file_comments($_file_server)->ver.'" media="all"'.(($id) ? ' id="'.str_replace('_', '-', $id).'-css"' : '').'>'."\n";
+          break;
+        } else if ($type) {
+          $typeRoot = $type.'Root';
+          if (isset($this->_files->$typeRoot) && file_exists($this->_files->$typeRoot.$file)) {
+            $_file_src = $this->_files->$type.$file;
+            $_file_server = $this->_files->$typeRoot.$file;
+            echo '<link rel="stylesheet" type="text/css" href="'.$_file_src.'?ver='.$this->get_file_comments($_file_server)->ver.'" media="all"'.(($id) ? ' id="'.str_replace('_', '-', $id).'-css"' : '').'>'."\n";
+            break;
+          }
+        }
+      case 'js':
+        if (file_exists($this->_files->jsRoot.$file)) {
+          $_file_src = $this->_files->js.$file;
+          $_file_server = $this->_files->jsRoot.$file;
+          echo '<script type="text/javascript" src="'.$_file_src.'?ver='.$this->get_file_comments($_file_server)->ver.'"'.(($id) ? ' id="'.str_replace('_', '-', $id).'-js"' : '').'></script>'."\n";
+          break;
+        } else if ($type) {
+          $typeRoot = $type.'Root';
+          if (isset($this->_files->$typeRoot) && file_exists($this->_files->$typeRoot.$file)) {
+            $_file_src = $this->_files->$type.$file;
+            $_file_server = $this->_files->$typeRoot.$file;
+            echo '<script type="text/javascript" src="'.$_file_src.'?ver='.$this->get_file_comments($_file_server)->ver.'"'.(($id) ? ' id="'.str_replace('_', '-', $id).'-js"' : '').'></script>'."\n";
+            break;
+          }
+        }
+      case 'php':
+        if (file_exists($this->_files->incRoot.$file)) {
+          require_once($this->_files->incRoot.$file); echo "\n";
+          break;
+        }
+      default:
+        $this->error('Cannot Find File: '.$file);
+      break;
+    }
+  }
+}
+?>

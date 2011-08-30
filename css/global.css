@@ -1,0 +1,36 @@
+/**
+ * @ver 1.0
+*/
+@variables {
+  bD: #032B44; /* Dark Blue */
+  bL: #0B94EB; /* Light Blue */
+  gD: #000000; /* Dark Gradient */
+  gL: #004C7C; /* Light Gradient */
+  gLr: rgba(0, 76, 124, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: url(../img/clear.png) 0 0 repeat-x #004C7C;
+  background-image: -webkit-gradient(linear,
+    left top, left bottom,
+    color-stop(0, #000000),
+    color-stop(1, #004C7C)
+  );
+  font-size: 12px;
+  font-family: 'Droid Sans', sans-serif;
+  color: #555;
+  height: 100%;
+}
+
+#main {
+  padding: 10px;
+}

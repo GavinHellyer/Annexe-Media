@@ -1,0 +1,216 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 30
+ */
+class database extends security {
+  private $_db = false;
+  
+  public function __construct() {
+    parent::__construct();
+    define('LOADED_DATABASE', true);
+    
+    $this->open();
+  }
+  
+  private function open() {
+    if (file_exists($this->_files->db)) {
+      $database = file_get_contents($this->_files->db);
+      if ($database) {
+        $this->_db = $this->array_to_object(unserialize($database));
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public function save() {
+    if ($this->_db) {
+      if (!file_exists($this->_files->db_bak)) {
+        $this->backup();
+      }
+      $handle = fopen($this->_files->db, 'w+');
+      fwrite($handle, serialize($this->_db));
+      fclose($handle);
+      return true;
+    }
+    return false;
+  }
+  
+  private function backup() {
+    copy($this->_files->db, $this->_files->db_bak);
+    $d = dir(dirname($this->_files->db));
+    $backups = array();
+    while (false !== ($entry = $d->read())) {
+      if (!in_array($entry, array('.', '..'))) {
+        if (substr($entry, -3) == 'bak') {
+          if (count($backups) >= BACKUP_LIMIT) {
+            unlink($backups[count($backups)-BACKUP_LIMIT]);
+          }
+          $backups[] = dirname($this->_files->db).'/'.$entry;
+        }
+      }
+    }
+    $d->close();
+  }
+  
+  public function select($table, $where = array(), $order = false, $limit = false) {
+    $_tables = $this->get_tables();
+    if (isset($_tables->$table)) {
+      $_table = $_tables->$table;
+      $_found = false;
+      if (isset($this->_db->data->$table)) {
+        foreach($this->_db->data->$table as $key => $val) {
+          if ($key != '_data') {
+            $_found->$key = $val;
+          }
+        }
+        if (is_array($where) && count($where) > 0) {
+          foreach($where as $col => $cell) {
+            foreach($_found as $key => $val) {
+              if (is_array($cell)) {
+                if (!isset($val->$col) || !in_array($val->$col, $cell)) {
+                  unset($_found->$key);
+                }
+              } else {
+                if (!isset($val->$col) || $val->$col != $cell) {
+                  unset($_found->$key);
+                }
+              }
+            }
+          }
+        }
+        if (count((array)$_found) == 0) {
+          $_found = false;
+        } else {
+          if ($order) {
+            $_found = $this->sort_object($_found, true);
+          }
+          if ($limit) {
+            $_found = $this->limit_object($_found, 0, $limit);
+          }
+        }
+      }
+      return $_found;
+    }
+    return $this->error('Table Not Found');
+  }
+
+  public function single($select) {
+    if ($select) {
+      foreach ($select as $single) {
+        return $single;
+      }
+    }
+  }
+  
+  public function insert($table, $fields, $save = true) {
+    $_tables = $this->get_tables();
+    if (isset($_tables->$table)) {
+      if (is_array($fields)) {
+        $_table = $_tables->$table;
+        $newTableRow = '';
+        foreach($_table as $col => $type) {
+          $newField = (isset($fields[$col])) ? $fields[$col] : '';
+          $newTableRow->$col = $this->populate_data($table, $type, $newField);
+        }
+        $insert_id = $newTableRow->id;
+        $this->_db->data->$table->_data->increment = $insert_id;
+        $this->_db->data->$table->$insert_id = $newTableRow;
+        if ($save) {
+          $this->save();
+        }
+        return $insert_id;
+      }
+      return $this->error('Invalid Fields');
+    }
+    return $this->error('Table Not Found');
+  }
+  
+  public function update($table, $fields, $where, $save = true) {
+    $_tables = $this->get_tables();
+    if (isset($_tables->$table)) {
+      if (is_array($fields)) {
+        $_selected = $this->select($table, $where);
+        if ($_selected) {
+          $updated = 0;
+          $_table = $_tables->$table;
+          foreach ($_selected as $row) {
+            $uped = false;
+            foreach ($fields as $key => $val) {
+              if (isset($row->$key)) {
+                $row->$key = $val;
+                $uped = true;
+              }
+            }
+            if ($uped) {
+              $updated++;
+            }
+          }
+          if ($updated > 0) {
+            if ($save) {
+              $this->save();
+            }
+          }
+          return 'Updated '.$updated.' '.(($updated > 1 || $updated == 0) ? 'Records' : 'Record');
+        }
+        return $this->error('Nothing Updated');
+      }
+      return $this->error('Invalid Fields');
+    }
+    return $this->error('Table Not Found');
+  }
+  
+  private function get_tables() {
+    if ($this->_db) {
+      return $this->_db->tables;
+    }
+    return false;
+  }
+  
+  private function populate_data($table, $type, $field) {
+    switch($type) {
+      case 'increment':
+        return $this->get_table_index($table);
+      break;
+      case 'string':
+        return $field;
+      break;
+      case 'int':
+        return $field;
+      break;
+      case 'float':
+        return $field;
+      break;
+      case 'timestamp':
+        return $field;
+      break;
+    }
+  }
+  
+  private function get_table_index($table) {
+    if (isset($this->_db->data->$table)) {
+      return $this->_db->data->$table->_data->increment+1;
+    }
+    return 1;
+  }
+  
+  public function save_img($url = false, $to = false, $force = false) {
+    if ($url && $to) {
+      if (!file_exists($this->_files->db_img.$to) || $force) {
+        $ch = curl_init($url);
+        $fp = fopen($this->_files->db_img.$to, 'wb');
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_exec($ch);
+        curl_close($ch);
+        fclose($fp);
+        
+        return 'New: '.$this->_files->db_img.$to;
+      }
+      return 'Old: '.$this->_files->db_img.$to;
+    }
+    return $this->error("Cannot Save Blank URL To Blank Location");
+  }
+}
+?>

@@ -1,0 +1,19 @@
+/**
+ * @ver 1.0
+*/
+.panel-side {
+  position: fixed;
+  top: 0;
+  right: 0;
+  margin-top: 5%;
+  -webkit-border-top-left-radius: 20px;
+  -webkit-border-bottom-left-radius: 20px;
+  background-image: -webkit-gradient(linear,
+    left top, left bottom,
+    color-stop(0, rgba(0, 76, 124, 0.8)),
+    color-stop(1, rgba(0, 0, 0, 0.8))
+  );
+  width: 45%;
+  height: 90%;
+  z-index: 10;
+}

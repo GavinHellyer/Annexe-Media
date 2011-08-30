@@ -1,0 +1,60 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 20
+ */
+class security extends core {
+  private $_access_type;
+  private $_allowed_modules;
+  
+  public function __construct() {
+    parent::__construct();
+    define('LOADED_SECURITY', true);
+    
+    $this->get_white_list();
+  }
+
+  public function check_access($file) {
+    if (file_exists($file)) {
+      $comments = $this->get_file_comments($file);
+      if (isset($comments->access)) {
+        return $this->allowed_access($comments->access, $comments->module);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private function allowed_access($type, $module = false) {
+    if ($type) {
+      if ($type == 'open') {
+        return true;
+      } else {
+        if ($this->_access_type == 5) {
+          return true;
+        } else {
+          if ($this->_allowed_modules === true) {
+            return true;
+          } else {
+            if (isset($this->_allowed_modules[$module])) {
+              return $this->_allowed_modules[$module];
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private function get_white_list() {
+    //get domain name and then request from main server what access type is used.
+    //also get a list of allowed modules
+
+    $this->_access_type = 1; //Super User (All Access) whatever will do this later :P
+    $this->_allowed_modules = array(
+      'Last Loaded' => true,
+      'Settings' => true
+    ); //Super User (All Access) whatever will do this later :P
+  }
+}
+?>

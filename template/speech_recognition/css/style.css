@@ -1,0 +1,24 @@
+/**
+ * @ver 1.0
+*/
+.btn-speech-recognition {
+  position: fixed;
+  top: 5px;
+  left: 5px;
+  width: 50px;
+}
+
+.btn-speech-recognition input {
+  position: absolute;
+  margin-left: 10px;
+  color: transparent;
+  background-color: transparent;
+  border: 0;
+  width: 15px;
+  height: 40px;
+  -webkit-transform: scale(3.0,3.0);
+  -moz-transform: scale(3.0,3.0);
+  -ms-transform: scale(3.0,3.0);
+  transform: scale(3.0,3.0);
+  z-index: 100;
+}

@@ -1,0 +1,159 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 10
+ */
+class core {
+  public $_files;
+  public $_links;
+  protected $_config;
+  
+  public function __construct() {
+    define('LOADED_CORE', true);
+    
+    $this->_config = $this->array_to_object(parse_ini_file(SERVER_ROOT.'config.ini', true));
+    
+    $this->define_config();
+    $this->_files = $this->get_files();
+    $this->_links = $this->get_links();
+  }
+  
+  private function define_config() {
+    if (isset($this->_config->define)) {
+      foreach($this->_config->define as $key => $val) {
+        $define = '';
+        eval("\$define = $val;");
+        define($key, $define);
+      }
+    }
+  }
+  
+  private function get_files() {
+    $files = $this->_config->files;
+    return $files;
+  }
+  
+  private function get_links() {
+    $links = $this->_config->links;
+    return $links;
+  }
+
+  public function array_to_object($array = array()) {
+    if (!empty($array)) {
+      $data = false;
+      foreach ($array as $akey => $aval) {
+        if (is_array($aval)) {
+          $data->{$akey} = $this->array_to_object($aval);
+        } else {
+          $data->{$akey} = $aval;
+        }
+      }
+      return $data;
+    }
+    return false;
+  }
+  
+  public function object_to_array($object = false) {
+    if (!empty($object)) {
+      $data = false;
+      foreach ($object as $okey => $oval) {
+        if (is_object($oval)) {
+          $data[$okey] = $this->object_to_array($oval);
+        } else {
+          $data[$okey] = $oval;
+        }
+      }
+      return $data;
+    }
+    return false;
+  }
+
+  public function set_session($type, $data, $clear = false) {
+    if (!isset($_SESSION)) {
+      session_start();
+    }
+    if ($clear) {
+      unset($_SESSION[SESSION][$type]);
+    }
+    $_SESSION[SESSION][$type][] = $data;
+  }
+
+  public function get_session($type, $clear = false) {
+    if (!isset($_SESSION)) {
+      session_start();
+    }
+
+    $session = (isset($_SESSION[SESSION][$type])) ? $_SESSION[SESSION][$type] : false;
+
+    if ($clear) {
+      unset($_SESSION[SESSION][$type]);
+    }
+
+    return $session;
+  }
+
+  public function error($text) {
+    $this->set_session('error', $text);
+    return false;
+  }
+
+  public function get_errors() {
+
+  }
+  
+  public function parse($start = false, $end = false, $data) {
+    $start_pos = ($start) ? (strpos($data, $start)+strlen($start)) : 0;
+    $data = substr($data, $start_pos);
+    $end_pos = ($end) ? strpos($data, $end) : strlen($data);
+    
+    return substr($data, 0, $end_pos);
+  }
+
+  public function get_file_comments($_file) {
+    $comments = (object) array('ver' => '1.0');
+    if (file_exists($_file)) {
+      $source = file_get_contents($_file);
+
+      $tokens = token_get_all($source);
+      if ($tokens) {
+        //printR($_file);
+        foreach ($tokens as $token) {
+          //printR($token[0]);
+          if (in_array($token[0], array(367, 365, 310, 311))) {
+            preg_match_all('/(@)(.[^ ]*)( )(.[^\n]*)/', $token[1], $matches);
+            if ($matches) {
+              foreach($matches[2] as $key => $val) {
+                $value = trim($matches[4][$key]);
+                $value = ((strtolower(strtolower($value)) === 'true') ? true : ((strtolower(strtolower($value)) === 'false') ? false : $value));
+                $comments->$val = $value;
+              }
+            }
+          }
+        }
+      }
+    }
+    return $comments;
+  }
+
+  public function sort_object($object, $dir = false) {
+    $array = $this->object_to_array($object);
+    if ($dir) {
+      krsort($array);
+    } else {
+      ksort($array);
+    }
+
+    return $this->array_to_object($array);
+  }
+
+  public function limit_object($object, $from = 0, $to = 0) {
+    $array = $this->object_to_array($object);
+    $array = array_slice($array, $from, $to, true);
+    return $this->array_to_object($array);
+  }
+
+  public function get_file_extension($file_name) {
+    return substr(strrchr($file_name, '.'), 1);
+  }
+}
+?>

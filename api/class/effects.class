@@ -1,0 +1,57 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 50
+ */
+class effects extends imdb {
+  private $_rating_width = 100;
+  private $_rating_total = 10;
+  private $_rating_type = 'overlay';
+  private $_rating_title = false;
+
+  public function __construct() {
+    parent::__construct();
+    define('LOADED_EFFECTS', true);
+  }
+
+  public function set_effect($item = false, $value = false) {
+    if ($item) {
+      if (is_array($item) && count($item) > 0) {
+        foreach($item as $key => $val) {
+          if (isset($this->$key)) {
+            $this->$key = $val;
+          }
+        }
+      } else {
+        if (isset($this->$item)) {
+          $this->$item = $value;
+        }
+      }
+      return $this;
+    }
+    return $this->error("Cannot Set Blank Variables");
+  }
+
+  public function generate_rating($rated = false) {
+    if ($rated) {
+      if ($rated <= $this->_rating_total) {
+        $percent = round(($rated/$this->_rating_total)*100);
+        $width = round(($this->_rating_width*$percent)/100);
+        $output = '';
+        switch ($this->_rating_type) {
+          case 'overlay':
+          default:
+            $output .= '<div class="rating-overlay"';
+            $output .= ($this->_rating_title) ? ' title="'.sprintf($this->_rating_title, $rated, $this->_rating_total, $percent).'"' : '';
+            $output .= '><div style="width: '.$width.'px;"></div></div>';
+          break;
+        }
+
+        return $output;
+      }
+      return $this->error("Rating Is Larger Then Out Of");
+    }
+    return $this->error("Cannot Generate Rating With No Rating");
+  }
+}
+?>
