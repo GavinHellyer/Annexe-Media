@@ -6,20 +6,7 @@ require_once('functions.php');
 require_once('class.php');
 require_once('plugins.php');
 
-$_this = new template;
-
-//printR($_this->get_imdb_episodes($_this->single($_this->select('items', array('title' => 'Lie to Me')))));
-//printR($_this->update_imdb_episodes(2));
-//$_this->get_imdb('Game Of Thrones', false, 'series');
-//$_this->save();
-$_this->add_action('erf', 'erness');
-$_this->add_action('erf', 'i_dont_know', 12);
-$_this->add_action('erf', 'something_else', 9);
-$_this->apply_action('erf');
-//printR($_this);
-
-//printR($_this->get_session('error', true));
-
+$core = new template;
 /*
 http://yiibu.com/
 

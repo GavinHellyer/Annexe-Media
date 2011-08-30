@@ -1,9 +1,9 @@
 <?php
 /**
  * @ver 1.0
- * @order 50
+ * @order 40
  */
-class effects extends imdb {
+class effects extends database {
   private $_rating_width = 100;
   private $_rating_total = 10;
   private $_rating_type = 'overlay';

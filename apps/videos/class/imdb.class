@@ -1,0 +1,242 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 40
+ */
+class imdb {
+  public $core = $template;
+  
+  public function __construct() {
+    parent::__construct();
+    define('LOADED_IMDB', true);
+  }
+  
+  public function load_by_id($id = false) {
+    if ($id) {
+      $found = $this->select('items', array('id' => $id));
+      if ($found) {
+        return $found;
+      }
+      return $this->error("ID: ".$id." Not Found");
+    }
+    return $this->error("Cannot Load Blank ID");
+  }
+
+  public function load_by_title($title = false, $type = false) {
+    if ($title) {
+      if ($type) {
+        $found = $this->select('items', array('title' => $title, 'type' => $type));
+        if ($found) {
+          return $found;
+        }
+        return $this->error("Title: ".$title." Not Found");
+      }
+      return $this->error("Type Is Blank");
+    }
+    return $this->error("Cannot Load Blank Title");
+  }
+
+  public function get_imdb($title = false, $year = false, $type = false) {
+    if ($title) {
+      $_imdb_by_title = $this->get_imdb_data($title, $year, $type);
+      if ($_imdb_by_title) {
+        $found = $this->select('items', array('title' => $_imdb_by_title->title, 'year' => $_imdb_by_title->year, 'type' => $_imdb_by_title->type));
+        if (!$found) {
+          $items_id = $this->insert('items', $this->object_to_array($_imdb_by_title), false);
+          if ($items_id) {
+            if ($_imdb_by_title->genre) {
+              foreach ($_imdb_by_title->genre as $key => $genre) {
+                $found = $this->select('genre', array('name' => $genre));
+                if (!$found) {
+                  $genre_id = $this->insert('genre', array('name' => $genre));
+                } else {
+                  $found_key = array_keys($this->object_to_array($found));
+                  $genre_id = $found_key[0];
+                }
+
+                if ($genre_id) {
+                  $found = $this->select('rel_genre', array('items_id' => $items_id, 'genre_id' => $genre_id));
+                  if (!$found) {
+                    $rel_genre_id = $this->insert('rel_genre', array('items_id' => $items_id, 'genre_id' => $genre_id), false);
+                  }
+                }
+              }
+            }
+            if ($type == 'series') {
+              $this->update_imdb_episodes($items_id);
+            }
+          }
+        }
+        return $found;
+      }
+      return false;
+    }
+    return $this->error("Cannot Find Blank Title");
+  }
+  
+  private function get_imdb_data($title = false, $year = false, $type = false) {
+    if ($title) {
+      $url = $this->_links->imdb_search.urlencode($title);
+      if ($year) {
+        $url .= '&release_date='.$year;
+      }
+      if ($type) {
+        $url .= '&title_type=';
+        switch($type) {
+          case 'movie':
+            $url .= 'feature,tv_movie,video,unknown,short,documentary,game';
+          break;
+          case 'series':
+            $url .= 'tv_series,mini_series,tv_special,video,unknown';
+          break;
+        }
+      }
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+      $data = curl_exec($ch);
+      $curl_errno = curl_errno($ch);
+      $curl_error = curl_error($ch);
+      curl_close($ch);
+      
+      if ($curl_errno > 0) {
+        return $this->error("There Was An Error(".$curl_errno."): ".$curl_error);
+      }
+      $newData = $this->format_imdb_data($data, $type);
+
+      if ($newData) {
+        return $newData;
+      }
+      return $this->error("Could Not Find Title");
+    }
+    return $this->error("Cannot Find Blank Name");
+  }
+
+  private function get_imdb_episodes($imdb_data = false) {
+    if ($imdb_data) {
+      if ($imdb_data->type == 'series') {
+        if ($imdb_data->link) {
+          $url = $this->_links->imdb_title.$imdb_data->link.$this->_links->imdb_episodes;
+          $ch = curl_init($url);
+          curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+          curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+          $data = curl_exec($ch);
+          $curl_errno = curl_errno($ch);
+          $curl_error = curl_error($ch);
+          curl_close($ch);
+
+          if ($curl_errno > 0) {
+            return $this->error("There Was An Error(".$curl_errno."): ".$curl_error);
+          }
+          $newData = $this->format_imdb_data_episodes($data);
+
+          if ($newData) {
+            return $newData;
+          }
+          return $this->error("Could Not Find Episodes");
+        }
+        return $this->error("Could Not Find Link");
+      }
+      return $this->error("This Feature Is For Series Only");
+    }
+    return $this->error("Data Empty");
+  }
+
+  public function update_imdb_episodes($items_id = false) {
+    if ($items_id) {
+      $found = $this->select('items', array('id' => $items_id, 'type' => 'series'));
+      if ($found) {
+        $_imdb_episodes = $this->get_imdb_episodes($this->single($found));
+        if ($_imdb_episodes) {
+          foreach($_imdb_episodes as $_imdb_episode) {
+            $found = $this->select('series', array('items_id' => $items_id, 'season' => $_imdb_episode->season, 'episode' => $_imdb_episode->episode));
+            if (!$found) {
+              $_imdb_episode->items_id = $items_id;
+              $episode_id = $this->insert('series', $this->object_to_array($_imdb_episode), false);
+            } else {
+              $episode = $this->single($found);
+              if ($episode->name != $_imdb_episode->name || $episode->description != $_imdb_episode->description || $episode->date != $_imdb_episode->date) {
+                $this->update('series', array('name' => $_imdb_episode->name, 'description' => $_imdb_episode->description, 'date' => $_imdb_episode->date), array('id' => $episode->id), false);
+              }
+            }
+          }
+          return true;
+        }
+        return $this->error("No Episodes Found");
+      }
+      return $this->error("Cannot Find Item");
+    }
+    return $this->error("Cannot Update Blank Item");
+  }
+  
+  private function format_imdb_data($data = false, $type = false) {
+    if ($data) {
+      $dataObj = false;
+      $newData = $this->parse('<tr class="even detailed">', '</tr>', $data);
+      if ($newData) {
+        $newData = str_replace(array("\n", "\r"), "", $newData);
+        $dataObj->img_orig = $this->parse('<td class="image">', '</td>', $newData);
+        $dataObj->img_orig = $this->parse('src="', '"', $newData);
+        $dataObj->img_new = preg_replace('/(_V)(.)(\._)(.[^\.]*)/', '$1$2$3SX250_CR0,0,250,370_', $dataObj->img_orig);
+        $newData = $this->parse('<td class="title">', '</td>', $newData);
+        $dataObj->title = $this->parse('">', '', $this->parse('<a href="/title/', '</a>', $newData));
+        $dataObj->link = $this->parse('<a href="/title/', '/"', $newData);
+        $dataObj->year = preg_replace("/(\()([0-9]*)(.*)/", "$2", $this->parse('<span class="year_type">', '</span>', $newData));
+        $dataObj->rating = $this->parse('<span class="value" itemprop="ratingValue">', '</span>', $newData);
+        $dataObj->story = $this->parse('<span class="outline">', '</span>', $newData);
+        $dataObj->genre = explode(" | ", strip_tags($this->parse('<span class="genre">', '</span>', $newData)));
+        $dataObj->certificate = $this->parse('title="', '"', $this->parse('<span class="certificate">', '</span>', $newData));
+        $dataObj->type = $type;
+      
+        if ($dataObj->link && $dataObj->img_orig && $dataObj->img_new) {
+          $this->save_img($dataObj->img_orig, $dataObj->link."_thumb.jpg");
+          $this->save_img($dataObj->img_new, $dataObj->link."_full.jpg");
+        }
+      }
+      return $dataObj;
+    }
+    return $this->error("Invalid Data");
+  }
+
+  private function format_imdb_data_episodes($data = false) {
+    if (defined('PLUGIN_PHPQUERY')) {
+      if ($data) {
+        $phpQuery = phpQuery::newDocumentHTML($data);
+        if (count($phpQuery['.season-filter-all']) > 0) {
+          $seriesInfo = array();
+          foreach ($phpQuery['.season-filter-all'] as $season) {
+            $seasonNumber = str_ireplace(array("\n", "\r", "season", " "), "", pq($season)->find('.season-header')->html());
+            if (is_numeric($seasonNumber)) {
+              foreach (pq($season)->find('.filter-all') as $episode) {
+                $episodeInfo = pq($episode)->find('h3');
+                preg_match('/(, .[^:]*)/', $episodeInfo->remove('a')->html(), $episodeNumber);
+                $episodeNumber = str_ireplace(array("episode", " ", ","), "", $episodeNumber[0]);
+                $episodeName = $episodeInfo->find('a')->html();
+                $episodeInfo = pq($episode)->find('td');
+                $episodeInfo->find('h3,div')->remove();
+                $episodeInfo = explode("<br>", $episodeInfo->html());
+                $episodeDescription = trim(strip_tags($episodeInfo[1]));
+                $episodeDate = strtotime(pq($episodeInfo[0])->find('strong')->html());
+                $seriesInfo[] = array(
+                  'season' => $seasonNumber,
+                  'episode' => $episodeNumber,
+                  'name' => $episodeName,
+                  'description' => $episodeDescription,
+                  'date' => $episodeDate
+                );
+              }
+            }
+          }
+          if (count($seriesInfo) > 0) {
+            return $this->array_to_object($seriesInfo);
+          }
+          return $this->error("Bad Data");
+        }
+        return $this->error("No Seasons Found");
+      }
+      return $this->error("Invalid Data");
+    }
+    return $this->error("Missing Plugin: phpQuery");
+  }
+}
+?>

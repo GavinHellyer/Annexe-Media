@@ -1,10 +1,11 @@
 <?php
 /**
  * @ver 1.0
- * @order 60
+ * @order 50
  */
 class template extends effects {
   private $_full_page;
+  private $_current_app;
   private $_current_page;
   private $_css;
   private $_js;
@@ -17,10 +18,10 @@ class template extends effects {
 
   public function load_base_template() {
     ob_start();
-    require_once(SERVER_ROOT.'header.php'); echo "\n";
+    require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/header.php'); echo "\n";
     $this->_full_page->header = ob_get_contents();
     ob_clean();
-    require_once(SERVER_ROOT.'footer.php'); echo "\n";
+    require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/footer.php'); echo "\n";
     $this->_full_page->footer = ob_get_contents();
     ob_end_clean();
 
@@ -29,7 +30,7 @@ class template extends effects {
 
   public function execute_template() {
     ob_start();
-    require_once(SERVER_ROOT.$this->_current_page.'.php'); echo "\n";
+    require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/'.$this->_current_page.'.php'); echo "\n";
     $this->_full_page->content = ob_get_contents();
     ob_end_clean();
     
@@ -76,9 +77,31 @@ class template extends effects {
     ob_end_clean();
   }
 
+  public function set_current_app($app = false) {
+    if ($app) {
+      if (is_dir(SERVER_ROOT.'apps/'.$app)) {
+        $this->_current_app = $app;
+        
+        if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini')) {
+          $this->load_config(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini');
+        }
+        
+        if (defined('SCHEMA')) {
+          $this->set_schema(SCHEMA)->open();
+        }
+        
+        return $this;
+      }
+      $this->error('App Not Found');
+      return $this;
+    }
+    $this->error('Cannot Load Blank App');
+    return $this;
+  }
+
   public function set_current_page($page = false) {
     if ($page) {
-      if (file_exists(SERVER_ROOT.$page.'.php')) {
+      if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/'.$page.'.php')) {
         $this->_current_page = $page;
         
         return $this;

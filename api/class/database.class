@@ -5,17 +5,30 @@
  */
 class database extends security {
   private $_db = false;
+  private $_schema;
+  private $_schema_bak;
   
   public function __construct() {
     parent::__construct();
     define('LOADED_DATABASE', true);
-    
-    $this->open();
   }
   
-  private function open() {
-    if (file_exists($this->_files->db)) {
-      $database = file_get_contents($this->_files->db);
+  public function set_schema($schema = false) {
+    if ($schema) {
+      if (file_exists($this->_files->db.$schema.'.db')) {
+        $this->_schema = $schema.'.db';
+        $this->_schema_bak = BAKUP_DATE.'_'.$schema.'.db.bak';
+        
+        return $this;
+      }
+      return false;
+    }
+    return false;
+  }
+  
+  public function open() {
+    if (file_exists($this->_files->db.$this->_schema)) {
+      $database = file_get_contents($this->_files->db.$this->_schema);
       if ($database) {
         $this->_db = $this->array_to_object(unserialize($database));
         return true;
@@ -26,10 +39,10 @@ class database extends security {
 
   public function save() {
     if ($this->_db) {
-      if (!file_exists($this->_files->db_bak)) {
+      if (!file_exists($this->_files->db.$this->_schema_bak)) {
         $this->backup();
       }
-      $handle = fopen($this->_files->db, 'w+');
+      $handle = fopen($this->_files->db.$this->_schema, 'w+');
       fwrite($handle, serialize($this->_db));
       fclose($handle);
       return true;
@@ -38,8 +51,8 @@ class database extends security {
   }
   
   private function backup() {
-    copy($this->_files->db, $this->_files->db_bak);
-    $d = dir(dirname($this->_files->db));
+    copy($this->_files->db.$this->_schema, $this->_files->db_bak);
+    $d = dir(dirname($this->_files->db.$this->_schema));
     $backups = array();
     while (false !== ($entry = $d->read())) {
       if (!in_array($entry, array('.', '..'))) {
@@ -47,7 +60,7 @@ class database extends security {
           if (count($backups) >= BACKUP_LIMIT) {
             unlink($backups[count($backups)-BACKUP_LIMIT]);
           }
-          $backups[] = dirname($this->_files->db).'/'.$entry;
+          $backups[] = dirname($this->_files->db.$this->_schema).'/'.$entry;
         }
       }
     }

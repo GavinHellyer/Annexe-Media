@@ -3,7 +3,9 @@
  * @ver 1.0
  * @order 40
  */
-class imdb extends database {
+class imdb {
+  public $core = $template;
+  
   public function __construct() {
     parent::__construct();
     define('LOADED_IMDB', true);

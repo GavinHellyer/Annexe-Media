@@ -4,13 +4,26 @@ define('SERVER_HOST', "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
 
 require_once('api/api.php');
 
-$_this->load_base_template();
-
-if (isset($_REQUEST['admin'])) {
-  $_this->set_current_page('admin');
+if (isset($_REQUEST['app'])) {
+  $core->set_current_app($_REQUEST['app']);
 } else {
-  $_this->set_current_page('home');
+  $core->set_current_app('videos');
 }
 
-$_this->execute_template();
+if ($core->has_errors()) {
+  printR($core->get_errors());
+  exit;
+}
+
+$core->load_base_template();
+
+if (isset($_REQUEST['admin'])) {
+  $core->set_current_page('admin');
+} else {
+  $core->set_current_page('home');
+}
+
+$core->execute_template();
+
+echo $core->get_errors();
 ?>
