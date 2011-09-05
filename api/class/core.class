@@ -131,24 +131,27 @@ class core {
     return substr($data, 0, $end_pos);
   }
 
-  public function get_file_comments($_file) {
+  public static function get_file_comments($_file) {
     $comments = (object) array('ver' => '1.0');
     if (file_exists($_file)) {
       $source = file_get_contents($_file);
-
       $tokens = token_get_all($source);
       if ($tokens) {
-        foreach ($tokens as $token) {
-          if (in_array($token[0], array(367, 365, 310, 311))) {
-            preg_match_all('/(@)(.[^ ]*)( )(.[^\n]*)/', $token[1], $matches);
-            if ($matches) {
-              foreach($matches[2] as $key => $val) {
-                $value = trim($matches[4][$key]);
-                $value = ((strtolower(strtolower($value)) === 'true') ? true : ((strtolower(strtolower($value)) === 'false') ? false : $value));
-                $comments->$val = $value;
-              }
-            }
-          }
+	      foreach ($tokens as $token) {
+		      //if (in_array($token[0], array(367, 365, 310, 311, 366))) {
+		      // Searches by token Name. This will eliminate problem of different systems. I hope :)
+		      if(is_numeric($token[0])){
+						if (in_array(token_name($token[0]), array("T_DOC_COMMENT"))) {
+							preg_match_all('/(@)(.[^ ]*)( )(.[^\n]*)/', $token[1], $matches);
+							if ($matches) {
+								foreach($matches[2] as $key => $val) {
+									$value = trim($matches[4][$key]);
+									$value = ((strtolower(strtolower($value)) === 'true') ? true : ((strtolower(strtolower($value)) === 'false') ? false : $value));
+									$comments->$val = $value;
+								}
+							}
+						}
+		      }
         }
       }
     }
