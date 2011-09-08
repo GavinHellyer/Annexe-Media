@@ -1,4 +1,5 @@
 Options +FollowSymlinks
 RewriteEngine on
-
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^([A-Za-z0-9-]+)/?$ index.php?app=$1 [NC,L] # Process parrots

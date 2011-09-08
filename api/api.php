@@ -1,12 +1,22 @@
 <?php
-if (!isset($_SESSION)) {
-  session_start();
-}
 require_once('functions.php');
 require_once('class.php');
 require_once('plugins.php');
 
-$core = new template;
+if (!isset($_SESSION)) {
+  session_start();
+}
+
+if (isset($_SESSION['gva-framework']['core'])) {
+  $core = &$_SESSION['gva-framework']['core'];
+  $core->redefine();
+} else {
+  $core = $_SESSION['gva-framework']['core'] = new template;
+}
+
+if ($devMode) {
+  unset($_SESSION['gva-framework']['core']);
+}
 /*
 http://yiibu.com/
 

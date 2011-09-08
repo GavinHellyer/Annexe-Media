@@ -6,9 +6,10 @@
 class core {
   public $_files;
   public $_links;
+  public $_definitions;
   
   public function __construct() {
-    define('LOADED_CORE', true);
+    $this->defines('LOADED_CORE', true);
     
     $this->load_config(SERVER_ROOT.'config.ini');
   }
@@ -31,7 +32,26 @@ class core {
       foreach($config->define as $key => $val) {
         $define = '';
         eval("\$define = $val;");
-        define($key, $define);
+        $this->defines($key, $define);
+      }
+    }
+  }
+
+  public function defines($key, $define) {
+    $this->_definitions->$key = $define;
+    if (!defined($key)) {
+      define($key, $define);
+    }
+
+    return true;
+  }
+
+  public function redefine() {
+    if (count($this->_definitions) > 0) {
+      foreach ($this->_definitions as $key => $define) {
+        if (!defined($key)) {
+          define($key, $define);
+        }
       }
     }
   }

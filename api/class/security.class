@@ -9,7 +9,7 @@ class security extends core {
   
   public function __construct() {
     parent::__construct();
-    define('LOADED_SECURITY', true);
+    $this->defines('LOADED_SECURITY', true);
     
     $this->get_white_list();
   }

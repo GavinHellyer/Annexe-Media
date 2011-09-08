@@ -7,21 +7,30 @@ class template extends effects {
   private $_full_page;
   private $_current_app;
   private $_current_page;
+  private $_current_page_title;
   private $_css;
   private $_js;
   private $_actions;
   
   public function __construct() {
     parent::__construct();
-    define('LOADED_TEMPLATE', true);
+    $this->defines('LOADED_TEMPLATE', true);
   }
 
   public function load_base_template() {
     ob_start();
-    require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/header.php'); echo "\n";
+    if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/header.php')) {
+      require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/header.php'); echo "\n";
+    } else {
+      require_once(SERVER_ROOT.'header.php'); echo "\n";
+    }
     $this->_full_page->header = ob_get_contents();
     ob_clean();
-    require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/footer.php'); echo "\n";
+    if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/footer.php')) {
+      require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/footer.php'); echo "\n";
+    } else {
+      require_once(SERVER_ROOT.'footer.php'); echo "\n";
+    }
     $this->_full_page->footer = ob_get_contents();
     ob_end_clean();
 
@@ -33,48 +42,10 @@ class template extends effects {
     require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/'.$this->_current_page.'.php'); echo "\n";
     $this->_full_page->content = ob_get_contents();
     ob_end_clean();
-    
-    $this->insert_cssjs();
 
     echo $this->_full_page->header;
     echo $this->_full_page->content;
     echo $this->_full_page->footer;
-  }
-
-  public function insert_cssjs() {
-    ob_start();
-    if ($this->_css) {
-      foreach ($this->_css as $type => $loader) {
-        foreach ($loader as $name => $file) {
-          if ($file) {
-            $css = ($file === true) ? 'style.css' : $file;
-            $id = $type.'-'.$name;
-            $this->load_file($name.'/css/'.$css, $id, $type);
-          }
-        }
-      }
-    }
-    $css = substr($this->format_output(ob_get_contents()), 0, -1);
-    $css = ($css) ? "\n  ".$css : '';
-    ob_clean();
-    if ($this->_js) {
-      foreach ($this->_js as $type => $loader) {
-        foreach ($loader as $name => $file) {
-          if ($file) {
-            $js = ($file === true) ? 'script.js' : $file;
-            $id = $type.'-'.$name;
-            $this->load_file($name.'/js/'.$js, $id, $type);
-          }
-        }
-      }
-    }
-    $js = substr($this->format_output(ob_get_contents()), 0, -1);
-    $js = ($js) ? "\n  ".$js : '';
-    ob_clean();
-
-    $this->_full_page->header = sprintf($this->_full_page->header, $css, $js);
-
-    ob_end_clean();
   }
 
   public function set_current_app($app = false) {
@@ -84,6 +55,11 @@ class template extends effects {
         
         if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini')) {
           $this->load_config(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini');
+          if (defined('APP_TITLE')) {
+            $this->set_current_page_title(APP_TITLE);
+          } else {
+            $this->set_current_page_title(APP_DEFAULT_TITLE);
+          }
         }
         
         if (defined('SCHEMA')) {
@@ -111,6 +87,15 @@ class template extends effects {
     }
     $this->error('Cannot Load Blank Page');
     return $this;
+  }
+
+  public function set_current_page_title($title = '') {
+    $this->_current_page_title = $title;
+    return $this;
+  }
+
+  public function get_current_page_title() {
+    return $this->_current_page_title;
   }
 
   public function load_module($module, $args = "") {
@@ -276,6 +261,27 @@ class template extends effects {
         $this->error('Cannot Find File: '.$file);
       break;
     }
+  }
+  
+  public function combine_cjs($_type = false) {
+    if ($_type) {
+      $contents = '';
+      $_types = '_'.$_type;
+      if ($this->$_types && count($this->$_types) > 0) {
+        foreach ($this->$_types as $type => $loader) {
+          foreach ($loader as $name => $file) {
+            if ($file) {
+              $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
+              $cjs_file = $this->_files->$type.'/'.$name.'/'.$_type.'/'.$cjs;
+              $contents .= file_get_contents($cjs_file)."\n\n";
+            }
+          }
+        }
+      }
+
+      return $contents;
+    }
+    return $this->error('Cannot combine unknown type');
   }
 }
 ?>

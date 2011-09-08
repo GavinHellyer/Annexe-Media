@@ -10,7 +10,7 @@ class database extends security {
   
   public function __construct() {
     parent::__construct();
-    define('LOADED_DATABASE', true);
+    $this->defines('LOADED_DATABASE', true);
   }
   
   public function set_schema($schema = false) {

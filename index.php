@@ -1,4 +1,6 @@
 <?php
+$time = microtime();
+
 define('SERVER_ROOT', dirname(__FILE__).'/');
 define('SERVER_HOST', "http://".$_SERVER['HTTP_HOST'].str_replace('index.php', '', $_SERVER['PHP_SELF']));
 
@@ -26,4 +28,5 @@ if (isset($_REQUEST['admin'])) {
 $core->execute_template();
 
 echo $core->get_errors();
+load_time($time);
 ?>

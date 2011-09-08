@@ -11,7 +11,7 @@ class effects extends database {
 
   public function __construct() {
     parent::__construct();
-    define('LOADED_EFFECTS', true);
+    $this->defines('LOADED_EFFECTS', true);
   }
 
   public function set_effect($item = false, $value = false) {

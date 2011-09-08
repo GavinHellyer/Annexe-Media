@@ -4,11 +4,13 @@
  * @order 40
  */
 class imdb {
-  public $core = $template;
+  private $core;
   
   public function __construct() {
-    parent::__construct();
-    define('LOADED_IMDB', true);
+    global $core;
+
+    $this->core = $core;
+    $this->core->defines('LOADED_IMDB', true);
   }
   
   public function load_by_id($id = false) {
