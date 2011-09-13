@@ -52,6 +52,7 @@ class template extends effects {
     if ($app) {
       if (is_dir(SERVER_ROOT.'apps/'.$app)) {
         $this->_current_app = $app;
+        $this->reset_cjs();
         
         if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini')) {
           $this->load_config(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini');
@@ -98,6 +99,10 @@ class template extends effects {
     return $this->_current_page_title;
   }
 
+  public function load_cjs($cjs, $type, $item, $file) {
+    $this->$cjs->$type->$item = $file;
+  }
+
   public function load_module($module, $args = "") {
     $load_module = $this->_files->modRoot.$module.'/loader.php';
     if (file_exists($load_module)) {
@@ -112,11 +117,11 @@ class template extends effects {
           $comments = $this->get_file_comments($this->_files->modRoot.$module.'/loader.php');
 
           if (isset($comments->css)) {
-            $this->_css->mod->$module = $comments->css;
+            $this->load_cjs('_css', 'mod', $module, $comments->css);
           }
 
           if (isset($comments->js)) {
-            $this->_js->mod->$module = $comments->js;
+            $this->load_cjs('_js', 'mod', $module, $comments->js);
           }
 
           $module_output = "<!-- Loading Module: ".((isset($comments->module)) ? $comments->module : $module)." v".$comments->ver." -->\n";
@@ -174,11 +179,11 @@ class template extends effects {
       $comments = $this->get_file_comments($this->_files->tempRoot.$template.'/loader.php');
 
       if (isset($comments->css)) {
-        $this->_css->temp->$template = $comments->css;
+        $this->load_cjs('_css', 'temp', $template, $comments->css);
       }
 
       if (isset($comments->js)) {
-        $this->_js->temp->$template = $comments->js;
+        $this->load_cjs('_js', 'temp', $template, $comments->js);
       }
 
       ob_start();
@@ -263,6 +268,11 @@ class template extends effects {
     }
   }
   
+  public function reset_cjs() {
+    $this->_css = '';
+    $this->_js = '';
+  }
+  
   public function combine_cjs($_type = false) {
     if ($_type) {
       $contents = '';
@@ -271,9 +281,17 @@ class template extends effects {
         foreach ($this->$_types as $type => $loader) {
           foreach ($loader as $name => $file) {
             if ($file) {
-              $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
-              $cjs_file = $this->_files->$type.'/'.$name.'/'.$_type.'/'.$cjs;
-              $contents .= file_get_contents($cjs_file)."\n\n";
+              if ($type == 'gen') {
+                $cjs_file = $this->_files->$_type.'/'.$file;
+              } else {
+                $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
+                $cjs_file = $this->_files->$type.'/'.$name.'/'.$_type.'/'.$cjs;
+              }
+              if ($_type == 'css') {
+                $contents .= CssMin::minify(file_get_contents($cjs_file))."\n\n";
+              } else {
+                $contents .= file_get_contents($cjs_file)."\n\n";
+              }
             }
           }
         }

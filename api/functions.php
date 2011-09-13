@@ -1,5 +1,5 @@
 <?php
-$devMode = true;
+$devMode = false;
 
 function printR($data) {
   echo "<pre>\n";

@@ -13,11 +13,16 @@ class core {
     
     $this->load_config(SERVER_ROOT.'config.ini');
   }
-  
+
+  public function get_config($config) {
+    $config = $this->array_to_object(parse_ini_file($config, true));
+    return $config;
+  }
+
   public function load_config($config) {
     if ($config) {
       if (file_exists($config)) {
-        $config = $this->array_to_object(parse_ini_file($config, true));
+        $config = $this->get_config($config);
         $this->define_config($config);
         $this->_files = $this->get_files($config);
         $this->_links = $this->get_links($config);

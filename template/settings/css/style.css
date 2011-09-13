@@ -1,11 +1,15 @@
 /**
  * @ver 1.0
 */
+#main {
+  margin-top: 35px;
+}
+
 .btn-settings {
   position: fixed;
   top: 5px;
   right: 5px;
-  background: url(../img/icon_30x30.png) 0 0 no-repeat;
+  background: url(../template/settings/img/icon_30x30.png) 0 0 no-repeat;
   width: 30px;
   height: 30px;
   opacity: 0.6;

@@ -9,8 +9,14 @@ require_once('api/api.php');
 if (isset($_REQUEST['app'])) {
   $core->set_current_app($_REQUEST['app']);
 } else {
-  $core->set_current_app('videos');
+  $core->set_current_app('dashboard');
 }
+
+$core->load_cjs('_css', 'gen', 'global', 'global.css');
+$core->load_cjs('_js', 'gen', 'jquery', 'jquery.js');
+$core->load_cjs('_js', 'gen', 'isotope', 'jquery.isotope.min.js');
+//$core->load_cjs('_js', 'gen', 'modernizr', 'modernizr.js');
+$core->load_cjs('_js', 'gen', 'global', 'global.js');
 
 if ($core->has_errors()) {
   printR($core->get_errors());
@@ -27,6 +33,5 @@ if (isset($_REQUEST['admin'])) {
 
 $core->execute_template();
 
-echo $core->get_errors();
 load_time($time);
 ?>

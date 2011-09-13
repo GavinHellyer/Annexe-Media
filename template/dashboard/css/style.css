@@ -1,0 +1,14 @@
+/**
+ * @ver 1.0
+*/
+#temp-dashboard {
+  overflow: visible !important;
+}
+
+#temp-dashboard .app-icon {
+  float: left;
+  margin: 5px;
+  text-align: center;
+  height: 100px;
+  width: 350px;
+}

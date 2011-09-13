@@ -16,14 +16,10 @@
   <?php echo $this->load_file('chrome_frame.php'); ?>
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Sans:400,700&v2">
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Nunito:400,700&v2">
-  <?php echo $this->load_file('global.css'); ?>
-  <!-- Module/Template CSS -->
+  <!-- General and Module/Template CSS -->
   <link rel="stylesheet" type="text/css" href="<?php echo $this->_files->css; ?>">
 
-  <?php echo $this->load_file('jquery.js'); ?>
-  <?php echo $this->load_file('modernizr.js'); ?>
-  <?php echo $this->load_file('global.js'); ?>
-  <!-- Module/Template JS -->
+  <!-- General and Module/Template JS -->
   <script type="text/javascript" src="<?php echo $this->_files->js; ?>"></script>
 </head>
 <body>
