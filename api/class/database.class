@@ -12,7 +12,7 @@ class database extends security {
     parent::__construct();
     $this->defines('LOADED_DATABASE', true);
   }
-  
+
   public function set_schema($schema = false) {
     if ($schema) {
       if (file_exists($this->_files->db.$schema.'.db')) {
@@ -28,28 +28,24 @@ class database extends security {
   
   public function open() {
     if (file_exists($this->_files->db.$this->_schema)) {
-      $database = file_get_contents($this->_files->db.$this->_schema);
-      if ($database) {
-        $this->_db = $this->array_to_object(unserialize($database));
+      require_once "DB.php";
+      require_once "DB/sqlite.php";
+      $dbd = array(
+        'phptype'  => 'sqlite3',
+        'database' => $this->_files->db.$this->_schema,
+        'mode'     => '0644',
+      );
+      $this->_db =& DB::connect($dbd);
+      if (PEAR::isError($this->_db)) {
+        return $this->error($this->_db->getMessage());
+      } else {
+        $this->backup();
         return true;
       }
     }
-    return false;
+    return $this->error('Schema Not Found');
   }
 
-  public function save() {
-    if ($this->_db) {
-      if (!file_exists($this->_files->db.$this->_schema_bak)) {
-        $this->backup();
-      }
-      $handle = fopen($this->_files->db.$this->_schema, 'w+');
-      fwrite($handle, serialize($this->_db));
-      fclose($handle);
-      return true;
-    }
-    return false;
-  }
-  
   private function backup() {
     copy($this->_files->db.$this->_schema, $this->_files->db_bak);
     $d = dir(dirname($this->_files->db.$this->_schema));
@@ -67,46 +63,117 @@ class database extends security {
     $d->close();
   }
   
-  public function select($table, $where = array(), $order = false, $limit = false) {
-    $_tables = $this->get_tables();
-    if (isset($_tables->$table)) {
-      $_table = $_tables->$table;
-      $_found = false;
-      if (isset($this->_db->data->$table)) {
-        foreach($this->_db->data->$table as $key => $val) {
-          if ($key != '_data') {
-            $_found->$key = $val;
-          }
+  public function execute($query = false) {
+    if ($query) {
+      $sql =& $this->_db->query($query);
+      if (PEAR::isError($sql)) {
+        return $this->error($sql->getMessage()." :: ".$query);
+      } else {
+        $result = array();
+        while ($sql->fetchInto($row, DB_FETCHMODE_ASSOC)) {
+          $result[] = $row;
         }
-        if (is_array($where) && count($where) > 0) {
-          foreach($where as $col => $cell) {
-            foreach($_found as $key => $val) {
-              if (is_array($cell)) {
-                if (!isset($val->$col) || !in_array($val->$col, $cell)) {
-                  unset($_found->$key);
-                }
-              } else {
-                if (!isset($val->$col) || $val->$col != $cell) {
-                  unset($_found->$key);
-                }
-              }
+        $sql->free();
+
+        return $this->array_to_object($result);
+      }
+    }
+    return $this->error('Missing SQL Statement');
+  }
+
+  public function select($columns, $table, $where = false, $order = false, $limit = false) {
+    if (isset($this->_db)) {
+      $columns = is_array($columns) ? implode(',', $columns) : $columns;
+      if ($where && is_array($where) && count($where)) {
+        $build = " WHERE ";
+        foreach($where as $key => $val) {
+          if ($build != " WHERE ") {
+            $build .= " AND ";
+          }
+          $build .= $key." = '".str_replace("'", "&#44;", $val)."'";
+        }
+        $where = $build;
+      } else {
+        $where = '';
+      }
+      if ($order && is_array($order) && count($order)) {
+        $build = " ORDER BY ";
+        foreach($order as $key => $val) {
+          if ($build != " ORDER BY ") {
+            $build .= ", ";
+          }
+          $build .= $key." ".$val;
+        }
+        $order = $build;
+      } else {
+        $order = '';
+      }
+      $limit = ($limit) ? " LIMIT ".$limit : '';
+
+      return $this->execute("SELECT $columns FROM $table $where $order $limit");
+    }
+    return $this->error('DB Not Loaded');
+  }
+
+  public function insert($table, $fields) {
+    if (isset($this->_db)) {
+      if (is_array($fields) && count($fields)) {
+        foreach($fields as $key => $val) {
+          $fields[$key] = "'".str_replace("'", "&#44;", $val)."'";
+        }
+        $result = $this->execute("INSERT INTO $table (".implode(',', array_keys($fields)).") VALUES (".implode(',', array_values($fields)).")");
+        if ($result) {
+          return $this->_db->lastInsertRowID();
+        }
+        return false;
+      }
+      return $this->error('Invalid Fields');
+    }
+    return $this->error('DB Not Loaded');
+  }
+  
+  public function update($table, $fields, $where = false) {
+    if (isset($this->_db)) {
+      if (is_array($fields) && count($fields)) {
+        $with = " SET ";
+        foreach($fields as $key => $val) {
+          if ($with != " SET ") {
+            $with .= ", ";
+          }
+          $with .= $key." = ".$val;
+        }
+        if ($where && is_array($where) && count($where)) {
+          $build = " WHERE ";
+          foreach($where as $key => $val) {
+            if ($build != " WHERE ") {
+              $build .= " AND ";
             }
+            $build .= $key." = '".str_replace("'", "&#44;", $val)."'";
           }
-        }
-        if (count((array)$_found) == 0) {
-          $_found = false;
+          $where = $build;
         } else {
-          if ($order) {
-            $_found = $this->sort_object($_found, true);
-          }
-          if ($limit) {
-            $_found = $this->limit_object($_found, 0, $limit);
-          }
+          $where = '';
+        }
+        return $this->execute("UPDATE $table $with $where");
+      }
+      return $this->error('Invalid Fields');
+    }
+    return $this->error('DB Not Loaded');
+  }
+
+  public function clean_insert($insert_fields, $clean = array()) {
+    if (count($clean)) {
+      foreach($clean as $key => $val) {
+        if (is_array($insert_fields)) {
+          unset($insert_fields[$val]);
+        }
+        if (is_object($insert_fields)) {
+          unset($insert_fields->$val);
         }
       }
-      return $_found;
     }
-    return $this->error('Table Not Found');
+
+    return $insert_fields;
   }
 
   public function single($select) {
@@ -115,99 +182,9 @@ class database extends security {
         return $single;
       }
     }
+    return $select;
   }
-  
-  public function insert($table, $fields, $save = true) {
-    $_tables = $this->get_tables();
-    if (isset($_tables->$table)) {
-      if (is_array($fields)) {
-        $_table = $_tables->$table;
-        $newTableRow = '';
-        foreach($_table as $col => $type) {
-          $newField = (isset($fields[$col])) ? $fields[$col] : '';
-          $newTableRow->$col = $this->populate_data($table, $type, $newField);
-        }
-        $insert_id = $newTableRow->id;
-        $this->_db->data->$table->_data->increment = $insert_id;
-        $this->_db->data->$table->$insert_id = $newTableRow;
-        if ($save) {
-          $this->save();
-        }
-        return $insert_id;
-      }
-      return $this->error('Invalid Fields');
-    }
-    return $this->error('Table Not Found');
-  }
-  
-  public function update($table, $fields, $where, $save = true) {
-    $_tables = $this->get_tables();
-    if (isset($_tables->$table)) {
-      if (is_array($fields)) {
-        $_selected = $this->select($table, $where);
-        if ($_selected) {
-          $updated = 0;
-          $_table = $_tables->$table;
-          foreach ($_selected as $row) {
-            $uped = false;
-            foreach ($fields as $key => $val) {
-              if (isset($row->$key)) {
-                $row->$key = $val;
-                $uped = true;
-              }
-            }
-            if ($uped) {
-              $updated++;
-            }
-          }
-          if ($updated > 0) {
-            if ($save) {
-              $this->save();
-            }
-          }
-          return 'Updated '.$updated.' '.(($updated > 1 || $updated == 0) ? 'Records' : 'Record');
-        }
-        return $this->error('Nothing Updated');
-      }
-      return $this->error('Invalid Fields');
-    }
-    return $this->error('Table Not Found');
-  }
-  
-  private function get_tables() {
-    if ($this->_db) {
-      return $this->_db->tables;
-    }
-    return false;
-  }
-  
-  private function populate_data($table, $type, $field) {
-    switch($type) {
-      case 'increment':
-        return $this->get_table_index($table);
-      break;
-      case 'string':
-        return $field;
-      break;
-      case 'int':
-        return $field;
-      break;
-      case 'float':
-        return $field;
-      break;
-      case 'timestamp':
-        return $field;
-      break;
-    }
-  }
-  
-  private function get_table_index($table) {
-    if (isset($this->_db->data->$table)) {
-      return $this->_db->data->$table->_data->increment+1;
-    }
-    return 1;
-  }
-  
+
   public function save_img($url = false, $to = false, $force = false) {
     if ($url && $to) {
       if (!file_exists($this->_files->db_img.$to) || $force) {

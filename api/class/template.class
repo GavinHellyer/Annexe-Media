@@ -11,7 +11,7 @@ class template extends effects {
   private $_css;
   private $_js;
   private $_actions;
-  
+
   public function __construct() {
     parent::__construct();
     $this->defines('LOADED_TEMPLATE', true);
@@ -42,6 +42,13 @@ class template extends effects {
     require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/'.$this->_current_page.'.php'); echo "\n";
     $this->_full_page->content = ob_get_contents();
     ob_end_clean();
+    
+    $_SESSION['gva_framework']['_css'] = $this->_css;
+    $_SESSION['gva_framework']['_js'] = $this->_js;
+
+    if ($this->has_errors()) {
+      printR($this->get_errors());
+    }
 
     echo $this->_full_page->header;
     echo $this->_full_page->content;
@@ -60,6 +67,23 @@ class template extends effects {
             $this->set_current_page_title(APP_TITLE);
           } else {
             $this->set_current_page_title(APP_DEFAULT_TITLE);
+          }
+        }
+
+        if (is_dir(SERVER_ROOT.'apps/'.$this->_current_app.'/class')) {
+          $d = dir(SERVER_ROOT.'apps/'.$this->_current_app.'/class');
+          $class = array();
+          while (false !== ($entry = $d->read())) {
+            if (!in_array($entry, array('.', '..'))) {
+              $comments = core::get_file_comments(SERVER_ROOT.'apps/'.$this->_current_app.'/class/'.$entry);
+              $class[$comments->order] = $entry;
+            }
+          }
+          $d->close();
+
+          ksort($class);
+          foreach ($class as $order => $entry) {
+            require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/class/'.$entry);
           }
         }
         
@@ -274,6 +298,9 @@ class template extends effects {
   }
   
   public function combine_cjs($_type = false) {
+    $this->_css = isset($_SESSION['gva_framework']['_css']) ? $_SESSION['gva_framework']['_css'] : $this->_css;
+    $this->_js = isset($_SESSION['gva_framework']['_js']) ? $_SESSION['gva_framework']['_js'] : $this->_js;
+
     if ($_type) {
       $contents = '';
       $_types = '_'.$_type;
@@ -288,7 +315,8 @@ class template extends effects {
                 $cjs_file = $this->_files->$type.'/'.$name.'/'.$_type.'/'.$cjs;
               }
               if ($_type == 'css') {
-                $contents .= CssMin::minify(file_get_contents($cjs_file))."\n\n";
+                //$contents .= CssMin::minify(file_get_contents($cjs_file))."\n\n";
+                $contents .= file_get_contents($cjs_file)."\n\n";
               } else {
                 $contents .= file_get_contents($cjs_file)."\n\n";
               }

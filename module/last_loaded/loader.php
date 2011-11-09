@@ -14,7 +14,7 @@ $this->set_effect(
   )
 );
 
-$items = $this->select('items', false, true, 5);
+$items = $this->select('*', 'items', false, array('id' => 'desc'), 5);
 $template_output = '<div class="mod-last-loaded">'."\n";
 $template_output .= IND.$this->format_output($this->apply_template('item_list', array('items' => $this->object_to_array($items))), 1);
 $template_output .= '</div>'."\n";

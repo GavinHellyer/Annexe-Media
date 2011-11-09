@@ -7,7 +7,7 @@ class core {
   public $_files;
   public $_links;
   public $_definitions;
-  
+
   public function __construct() {
     $this->defines('LOADED_CORE', true);
     
@@ -193,18 +193,21 @@ class core {
 
   public function sort_object($object, $dir = false) {
     $array = $this->object_to_array($object);
-    if ($dir) {
-      krsort($array);
-    } else {
-      ksort($array);
+    if (is_array($array)) {
+      if ($dir) {
+        krsort($array);
+      } else {
+        ksort($array);
+      }
     }
-
     return $this->array_to_object($array);
   }
 
   public function limit_object($object, $from = 0, $to = 0) {
     $array = $this->object_to_array($object);
-    $array = array_slice($array, $from, $to, true);
+    if (is_array($array)) {
+      $array = array_slice($array, $from, $to, true);
+    }
     return $this->array_to_object($array);
   }
 

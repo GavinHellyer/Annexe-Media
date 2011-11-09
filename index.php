@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors','On');
+
 $time = microtime();
 
 define('SERVER_ROOT', dirname(__FILE__).'/');
@@ -17,11 +19,6 @@ $core->load_cjs('_js', 'gen', 'jquery', 'jquery.js');
 $core->load_cjs('_js', 'gen', 'isotope', 'jquery.isotope.min.js');
 //$core->load_cjs('_js', 'gen', 'modernizr', 'modernizr.js');
 $core->load_cjs('_js', 'gen', 'global', 'global.js');
-
-if ($core->has_errors()) {
-  printR($core->get_errors());
-  exit;
-}
 
 $core->load_base_template();
 
