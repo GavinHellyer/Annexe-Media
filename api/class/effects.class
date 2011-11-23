@@ -53,5 +53,18 @@ class effects extends database {
     }
     return $this->error("Cannot Generate Rating With No Rating");
   }
+
+  public function generate_image($blob, $label = false, $size = false, $crop = false) {
+    if ($label) {
+      $code = $label;
+    } else {
+      $code = $this->generate_code(5, 4);
+    }
+    $_SESSION['images'][$code] = $blob;
+    $size = ($size) ? '&size='.$size : '';
+    $crop = ($crop) ? '&crop=true' : '';
+
+    return $this->_files->inc.'image.php?id='.$code.$size.$crop;
+  }
 }
 ?>

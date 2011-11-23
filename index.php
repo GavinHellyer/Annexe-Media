@@ -1,5 +1,6 @@
 <?php
 ini_set('display_errors','On');
+set_time_limit(300);
 
 $time = microtime();
 
@@ -17,7 +18,6 @@ if (isset($_REQUEST['app'])) {
 $core->load_cjs('_css', 'gen', 'global', 'global.css');
 $core->load_cjs('_js', 'gen', 'jquery', 'jquery.js');
 $core->load_cjs('_js', 'gen', 'isotope', 'jquery.isotope.min.js');
-//$core->load_cjs('_js', 'gen', 'modernizr', 'modernizr.js');
 $core->load_cjs('_js', 'gen', 'global', 'global.js');
 
 $core->load_base_template();

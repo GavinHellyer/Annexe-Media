@@ -1,0 +1,73 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 10
+ */
+class datacapture {
+  public $core;
+  private $_path = false;
+  private $_folders;
+
+  public function __construct() {
+    global $core;
+    $this->core = $core;
+
+    $this->core->defines('LOADED_DIRECTORY', true);
+
+    if (is_dir('/home/0external/')) {
+      $this->_path = '/home/0external/';
+    }
+  }
+
+  public function get_avaliable_drives() {
+    $try = array();
+    if ($this->_path) {
+      if (is_dir($this->_path)) {
+        if ($d = @dir($this->_path)) {
+          while (false !== ($entry = $d->read())) {
+            if (!in_array($entry, array('.', '..'))) {
+              $try[] = $this->_path.$entry;
+            }
+          }
+        }
+      }
+    } else {
+      $try = array(
+        'D:','E:','F:','G:','H:',
+        'I:','J:','K:','L:','M:',
+        'N:','O:','P:','Q:','R:',
+        'S:','T:','U:','V:','W:',
+        'X:','Y:','Z:'
+      );
+    }
+
+    if (count($try)) {
+      foreach($try as $path) {
+        if (is_dir($path)) {
+          if (is_dir($path.'/Movies/')) {
+            $config = false;
+            if (file_exists($path.'/.config')) {
+              $config = $this->core->get_config($path.'/.config');
+            }
+            $this->_folders->movies[] = $this->core->array_to_object(
+              array(
+                'folder' => $path.'/Movies/',
+                'structure' => ($config && isset($config->structure)) ? $config->structure->movies : 'default',
+              )
+            );
+          }
+          if (is_dir($path.'/Series/')) {
+            $this->_folders->series[] = $this->core->array_to_object(
+              array(
+                'folder' => $path.'/Series/',
+              )
+            );
+          }
+        }
+      }
+    }
+
+    return $this;
+  }
+}
+?>

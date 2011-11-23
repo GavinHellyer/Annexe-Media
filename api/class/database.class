@@ -28,8 +28,14 @@ class database extends security {
   
   public function open() {
     if (file_exists($this->_files->db.$this->_schema)) {
-      require_once "DB.php";
-      require_once "DB/sqlite.php";
+      if (file_exists("DB.php")) {
+        require_once "DB.php";
+        require_once "DB/sqlite.php";
+      } else {
+        require_once(SERVER_ROOT."include/database/DB.php");
+        require_once(SERVER_ROOT."include/database/DB/sqlite.php");
+        //require_once(SERVER_ROOT."include/database.php");
+      }
       $dbd = array(
         'phptype'  => 'sqlite3',
         'database' => $this->_files->db.$this->_schema,
@@ -47,35 +53,43 @@ class database extends security {
   }
 
   private function backup() {
-    copy($this->_files->db.$this->_schema, $this->_files->db_bak);
-    $d = dir(dirname($this->_files->db.$this->_schema));
-    $backups = array();
-    while (false !== ($entry = $d->read())) {
-      if (!in_array($entry, array('.', '..'))) {
-        if (substr($entry, -3) == 'bak') {
-          if (count($backups) >= BACKUP_LIMIT) {
-            unlink($backups[count($backups)-BACKUP_LIMIT]);
+    if (!file_exists($this->_files->db.BAKUP_DATE.'_'.$this->_schema.'.bak')) {
+      copy($this->_files->db.$this->_schema, $this->_files->db.BAKUP_DATE.'_'.$this->_schema.'.bak');
+      $d = dir($this->_files->db);
+      $backups = array();
+      while (false !== ($entry = $d->read())) {
+        if (!in_array($entry, array('.', '..'))) {
+          if (substr($entry, -3) == 'bak' && strpos($entry, $this->_schema) !== false) {
+            if (count($backups) >= BACKUP_LIMIT) {
+              unlink($backups[count($backups)-BACKUP_LIMIT]);
+            }
+            $backups[] = $this->_files->db.'/'.$entry;
           }
-          $backups[] = dirname($this->_files->db.$this->_schema).'/'.$entry;
         }
       }
+      $d->close();
     }
-    $d->close();
   }
   
-  public function execute($query = false) {
+  public function execute($query = false, $return = true) {
     if ($query) {
       $sql =& $this->_db->query($query);
-      if (PEAR::isError($sql)) {
+
+      if ($sql && PEAR::isError($sql)) {
         return $this->error($sql->getMessage()." :: ".$query);
       } else {
-        $result = array();
-        while ($sql->fetchInto($row, DB_FETCHMODE_ASSOC)) {
-          $result[] = $row;
+        if ($sql && $return) {
+          $result = array();
+          while ($sql->fetchInto($row, DB_FETCHMODE_ASSOC)) {
+            $result[] = $row;
+          }
+          $sql->free();
+          return $this->array_to_object($result);
+        } else if (!$return) {
+          return true;
+        } else {
+          return $this->error('Query Error: '.$query);
         }
-        $sql->free();
-
-        return $this->array_to_object($result);
       }
     }
     return $this->error('Missing SQL Statement');
@@ -90,7 +104,7 @@ class database extends security {
           if ($build != " WHERE ") {
             $build .= " AND ";
           }
-          $build .= $key." = '".str_replace("'", "&#44;", $val)."'";
+          $build .= $key." = ".$this->clean_for_db($val);
         }
         $where = $build;
       } else {
@@ -119,11 +133,11 @@ class database extends security {
     if (isset($this->_db)) {
       if (is_array($fields) && count($fields)) {
         foreach($fields as $key => $val) {
-          $fields[$key] = "'".str_replace("'", "&#44;", $val)."'";
+          $fields[$key] = $this->clean_for_db($val);
         }
-        $result = $this->execute("INSERT INTO $table (".implode(',', array_keys($fields)).") VALUES (".implode(',', array_values($fields)).")");
+        $result = $this->execute("INSERT INTO $table (".implode(',', array_keys($fields)).") VALUES (".implode(',', array_values($fields)).")", false);
         if ($result) {
-          return $this->_db->lastInsertRowID();
+          return $this->last_insert_id();
         }
         return false;
       }
@@ -140,7 +154,7 @@ class database extends security {
           if ($with != " SET ") {
             $with .= ", ";
           }
-          $with .= $key." = ".$val;
+          $with .= $key." = ".$this->clean_for_db($val);
         }
         if ($where && is_array($where) && count($where)) {
           $build = " WHERE ";
@@ -148,17 +162,21 @@ class database extends security {
             if ($build != " WHERE ") {
               $build .= " AND ";
             }
-            $build .= $key." = '".str_replace("'", "&#44;", $val)."'";
+            $build .= $key." = ".$this->clean_for_db($val);
           }
           $where = $build;
         } else {
           $where = '';
         }
-        return $this->execute("UPDATE $table $with $where");
+        return $this->execute("UPDATE $table $with $where", false);
       }
       return $this->error('Invalid Fields');
     }
     return $this->error('DB Not Loaded');
+  }
+
+  private function last_insert_id() {
+    return sqlite3_last_insert_rowid($this->_db->connection);
   }
 
   public function clean_insert($insert_fields, $clean = array()) {
@@ -176,6 +194,10 @@ class database extends security {
     return $insert_fields;
   }
 
+  public function clean_for_db($string, $encase = "'") {
+    return $encase.str_replace("'", "&#44;", $string).$encase;
+  }
+
   public function single($select) {
     if ($select) {
       foreach ($select as $single) {
@@ -183,24 +205,6 @@ class database extends security {
       }
     }
     return $select;
-  }
-
-  public function save_img($url = false, $to = false, $force = false) {
-    if ($url && $to) {
-      if (!file_exists($this->_files->db_img.$to) || $force) {
-        $ch = curl_init($url);
-        $fp = fopen($this->_files->db_img.$to, 'wb');
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_exec($ch);
-        curl_close($ch);
-        fclose($fp);
-        
-        return 'New: '.$this->_files->db_img.$to;
-      }
-      return 'Old: '.$this->_files->db_img.$to;
-    }
-    return $this->error("Cannot Save Blank URL To Blank Location");
   }
 }
 ?>

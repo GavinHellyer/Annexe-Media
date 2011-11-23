@@ -11,6 +11,9 @@ class core {
   public function __construct() {
     $this->defines('LOADED_CORE', true);
     
+    if (isset($_REQUEST['extract_url'])) {
+      $this->extract_url($_REQUEST['extract_url']);
+    }
     $this->load_config(SERVER_ROOT.'config.ini');
   }
 
@@ -213,6 +216,20 @@ class core {
 
   public function get_file_extension($file_name) {
     return substr(strrchr($file_name, '.'), 1);
+  }
+
+  public function extract_url($url) {
+    unset($_REQUEST['extract_url']);
+    if ($url && !empty($url)) {
+      $url = explode('/', $url);
+      for($i = 0; $i < count($url); $i++) {
+        if ($i % 2) {
+          $_REQUEST[$url[$i-1]] = (($url[$i]) ? $url[$i] : true);
+        } else {
+          $_REQUEST[$url[$i]] = true;
+        }
+      }
+    }
   }
 }
 ?>

@@ -56,5 +56,35 @@ class security extends core {
       'Settings' => true
     ); //Super User (All Access) whatever will do this later :P
   }
+
+  public function generate_code($length = 9, $strength = 0) {
+    $vowels = 'aeuy';
+    $consonants = 'bdghjmnpqrstvz';
+    if ($strength & 1) {
+      $consonants .= 'BDGHJLMNPQRSTVWXZ';
+    }
+    if ($strength & 2) {
+      $vowels .= "AEUY";
+    }
+    if ($strength & 4) {
+      $consonants .= '23456789';
+    }
+    if ($strength & 8) {
+      $consonants .= '@#$%';
+    }
+
+    $code = '';
+    $alt = time() % 2;
+    for ($i = 0; $i < $length; $i++) {
+      if ($alt == 1) {
+        $code .= $consonants[(rand() % strlen($consonants))];
+        $alt = 0;
+      } else {
+        $code .= $vowels[(rand() % strlen($vowels))];
+        $alt = 1;
+      }
+    }
+    return $code;
+  }
 }
 ?>

@@ -12,7 +12,7 @@
 <div class="temp-item-list">
   <ul>
     <li>
-      <div class="video-image"><img src="<?php echo $this->_files->imgDB; ?><?php echo $_item->link; ?>_full.jpg" /></div>
+      <div class="video-image"><img src="<?php echo $this->generate_image($_item->img, $_item->link.'.jpg', '250x370', true); ?>" /></div>
       <div class="video-title"><?php echo $_item->title; ?></div>
       <div class="video-story"><?php echo $_item->story; ?></div>
       <div class="video-rating">
