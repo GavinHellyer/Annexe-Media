@@ -1,0 +1,23 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 60
+ */
+class ajax extends template {
+  public function __construct() {
+    parent::__construct();
+    $this->defines('LOADED_AJAX', true);
+  }
+
+  public function call_ajax() {
+    if (isset($_REQUEST['action'])) {
+      $action = 'ajax_'.$_REQUEST['action'];
+      if (method_exists($this, $action)) {
+        call_user_func(array($this, $action), $_POST);
+      } else if (method_exists($this->app, $action)) {
+        call_user_func(array($this->app, $action), $_POST);
+      }
+    }
+  }
+}
+?>

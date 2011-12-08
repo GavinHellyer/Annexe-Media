@@ -3,8 +3,8 @@
  * @ver 1.0
  * @module Character Sheet
  * @description Dungeons and Dragons character sheet
- * @css true
- * @js true
+ * @css false
+ * @js false
 */
 
 return 'Hello';

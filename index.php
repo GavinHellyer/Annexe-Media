@@ -15,15 +15,16 @@ if (isset($_REQUEST['app'])) {
   $core->set_current_app('dashboard');
 }
 
-$core->load_cjs('_css', 'gen', 'global', 'global.css');
+$core->load_cjs('_css', 'gen', 'global', 'global.less');
 $core->load_cjs('_js', 'gen', 'jquery', 'jquery.js');
+$core->load_cjs('_js', 'gen', 'less', 'less.js');
 $core->load_cjs('_js', 'gen', 'isotope', 'jquery.isotope.min.js');
 $core->load_cjs('_js', 'gen', 'global', 'global.js');
 
 $core->load_base_template();
 
-if (isset($_REQUEST['admin'])) {
-  $core->set_current_page('admin');
+if (isset($_REQUEST['page'])) {
+  $core->set_current_page($_REQUEST['page']);
 } else {
   $core->set_current_page('home');
 }

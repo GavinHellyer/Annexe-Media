@@ -17,7 +17,7 @@
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Droid+Sans:400,700&v2">
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Nunito:400,700&v2">
   <!-- General and Module/Template CSS -->
-  <link rel="stylesheet" type="text/css" href="<?php echo $this->_files->css; ?>">
+  <?php echo $this->load_theme(); ?>
 
   <!-- General and Module/Template JS -->
   <script type="text/javascript" src="<?php echo $this->_files->js; ?>"></script>

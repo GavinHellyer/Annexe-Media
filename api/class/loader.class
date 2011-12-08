@@ -1,0 +1,11 @@
+<?php
+/**
+ * @ver 1.0
+ * @order 100
+ */
+class gva extends ajax {
+  public function __construct() {
+    parent::__construct();
+  }
+}
+?>

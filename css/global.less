@@ -1,0 +1,94 @@
+/**
+ * @ver 1.0
+*/
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: url(../img/clear.png) 0 0 repeat-x @bodyBackground;
+  #gradient > .vertical(@bodyGradientFirst, @bodyGradientLast);
+  font-size: 12px;
+  font-family: 'Droid Sans', sans-serif;
+  color: @bodyFontColor;
+  height: 100%;
+}
+
+#main {
+  padding: 10px;
+}
+
+a[data-tooltip] {
+  cursor:pointer !important;
+}
+
+*[data-tooltip] {
+  position:relative;
+  cursor:help;
+  text-decoration:none;
+}
+
+*[data-tooltip]:after,
+*[data-tooltip]:before {
+  content:"";
+  .opacity(0);
+  z-index:999;
+  .transition(opacity 2s 1s);
+  text-decoration:none !important;
+  outline:none;
+}
+
+*[data-tooltip]:hover:before,
+*[data-tooltip]:focus:before {
+  .opacity(94);
+  outline:none;
+  content:"";
+  display:block;
+  position:absolute;
+  top:20px;
+  left:50%;
+  margin:0 0 0 -5px;
+  width:0;
+  height:0;
+  line-height:0px;
+  font-size:0px;
+
+  border-bottom:5px solid @tooltipBorder;
+  border-left:5px solid transparent;
+  border-right:5px solid transparent;
+  border-top:transparent;
+
+  #gradient > .vertical(@tooltipGradientFirst, @tooltipGradientLast);
+}
+
+*[data-tooltip]:hover:after,
+*[data-tooltip]:focus:after {
+  .opacity(94);
+  display:block;
+  content:attr(data-tooltip);
+  position:absolute;
+  top:25px;
+  left:50%;
+  margin:0 0 0 -150px;
+  width:290px;
+  padding:5px;
+  line-height:18px;
+  min-height:18px;
+  color:@tooltipFontColor;
+  font-size:16px;
+  font-weight:normal;
+  font-family:helvetica neue, calibri, verdana, arial, sans-serif;
+  background:@tooltipBackground;
+  text-align:center;
+  outline:none;
+  text-decoration:none !important;
+  #gradient > .vertical(@tooltipGradientFirst, @tooltipGradientLast);
+  .border-radius(10px);
+  .box-shadow(2px 2px 4px @tooltipBoxShadow);
+  text-shadow:@tooltipTextShadow 0 1px 0px;
+}

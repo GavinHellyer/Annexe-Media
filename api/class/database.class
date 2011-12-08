@@ -179,7 +179,7 @@ class database extends security {
     return sqlite3_last_insert_rowid($this->_db->connection);
   }
 
-  public function clean_insert($insert_fields, $clean = array()) {
+  public function exclude($insert_fields, $clean = array()) {
     if (count($clean)) {
       foreach($clean as $key => $val) {
         if (is_array($insert_fields)) {

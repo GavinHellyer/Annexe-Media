@@ -2,20 +2,20 @@
  * @ver 1.0
 */
 #main {
-  margin-top: 35px;
+  padding-top: 45px;
 }
 
 .btn-settings {
+  .opacity(60);
   position: fixed;
   top: 5px;
   right: 5px;
   background: url(../template/settings/img/icon_30x30.png) 0 0 no-repeat;
   width: 30px;
   height: 30px;
-  opacity: 0.6;
   cursor: pointer;
 }
 
 .btn-settings:hover {
-  opacity: 1;
+  .opacity(100);
 }

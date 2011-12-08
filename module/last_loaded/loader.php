@@ -4,8 +4,8 @@
  * @module Last Loaded
  * @description Display the last few items that were loaded
  * @access secure
- * @css true
- * @js true
+ * @css false
+ * @js false
 */
 $this->set_effect(
   array(

@@ -7,6 +7,8 @@ class imdb extends datacapture {
   public function __construct() {
     parent::__construct();
     $this->core->defines('LOADED_IMDB', true);
+    $this->core->defines('IMDB_M', 'movies');
+    $this->core->defines('IMDB_S', 'series');
   }
   
   public function load_by_id($id = false) {
@@ -39,7 +41,7 @@ class imdb extends datacapture {
       $_imdb_by_title = $this->get_imdb_data($title, $year, $type);
       if ($_imdb_by_title) {
         $found = $this->core->single($this->core->select('*', 'items', array('title' => $_imdb_by_title->title, 'year' => $_imdb_by_title->year, 'type' => $_imdb_by_title->type)));
-        $fields = $this->core->clean_insert($this->core->object_to_array($_imdb_by_title), array('genres'));
+        $fields = $this->core->exclude($this->core->object_to_array($_imdb_by_title), array('genres'));
         if ($found) {
           $items_id = $found->id;
           if ($found->flag > 1) {
@@ -52,7 +54,7 @@ class imdb extends datacapture {
           if ($_imdb_by_title->genres) {
             $this->update_imdb_genres($_imdb_by_title->genres, $items_id);
           }
-          if ($type == 'series') {
+          if ($type == IMDB_S) {
             $this->update_imdb_episodes($items_id);
           }
         }
@@ -72,10 +74,10 @@ class imdb extends datacapture {
       if ($type) {
         $url .= '&title_type=';
         switch($type) {
-          case 'movie':
+          case IMDB_M:
             $url .= 'feature,tv_movie,video,unknown,short,documentary,game';
           break;
-          case 'series':
+          case IMDB_S:
             $url .= 'tv_series,mini_series,tv_special,video,unknown';
           break;
         }
@@ -115,7 +117,7 @@ class imdb extends datacapture {
         $dataObj->genres = explode(" | ", str_replace(array("\n", "\r"), '', strip_tags($phpQuery->find('td.title .genre')->html())));
         $dataObj->certificate = $phpQuery->find('td.title .certificate img')->attr('title');
         $dataObj->type = $type;
-        $dataObj->flag = ($type == 'series') ? 1 : 0;
+        $dataObj->flag = ($type == IMDB_S) ? 1 : 0;
         $dataObj->img = $this->get_img(preg_replace('/(@@)(.*)/', '$1.jpg', $phpQuery->find('td.image img')->attr('src')));
       }
       return $dataObj;
@@ -148,7 +150,7 @@ class imdb extends datacapture {
 
   private function get_imdb_episodes($imdb_data = false) {
     if ($imdb_data) {
-      if ($imdb_data->type == 'series') {
+      if ($imdb_data->type == IMDB_S) {
         if ($imdb_data->link) {
           $url = $this->core->_links->imdb_title.$imdb_data->link.$this->core->_links->imdb_episodes;
           $ch = curl_init($url);
@@ -219,7 +221,7 @@ class imdb extends datacapture {
 
   public function update_imdb_episodes($items_id = false) {
     if ($items_id) {
-      $found = $this->core->select('*', 'items', array('id' => $items_id, 'type' => 'series'));
+      $found = $this->core->select('*', 'items', array('id' => $items_id, 'type' => IMDB_S));
       if ($found) {
         $_imdb_episodes = $this->get_imdb_episodes($this->core->single($found));
         if ($_imdb_episodes) {

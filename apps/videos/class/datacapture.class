@@ -7,6 +7,9 @@ class datacapture {
   public $core;
   private $_path = false;
   private $_folders;
+  private $_movies;
+  private $_series;
+  private $_extensions = array('video' => array('avi', 'mkv', 'mp4'), 'subtitle' => array('sub', 'srt'));
 
   public function __construct() {
     global $core;
@@ -19,7 +22,7 @@ class datacapture {
     }
   }
 
-  public function get_avaliable_drives() {
+  public function drives() {
     $try = array();
     if ($this->_path) {
       if (is_dir($this->_path)) {
@@ -32,13 +35,9 @@ class datacapture {
         }
       }
     } else {
-      $try = array(
-        'D:','E:','F:','G:','H:',
-        'I:','J:','K:','L:','M:',
-        'N:','O:','P:','Q:','R:',
-        'S:','T:','U:','V:','W:',
-        'X:','Y:','Z:'
-      );
+      for($d = 'D'; $d <= 'Z'; $d++) {
+        $try[] = $d.':';
+      }
     }
 
     if (count($try)) {
@@ -68,6 +67,118 @@ class datacapture {
     }
 
     return $this;
+  }
+
+  public function get_videos() {
+    if (count($this->_folders)) {
+      foreach($this->_folders as $type => $dir) {
+        foreach($dir as $folder) {
+          switch($type) {
+            case IMDB_M:
+              $structure = isset($folder->structure) ? $folder->structure : false;
+              $structure = false;
+              if ($structure == 'a-z') {
+                for($d = 'A'; $d <= 'Z'; $d++) {
+                  if (is_dir($folder->folder.$d)) {
+                    $this->get_titles($type, $folder->folder.$d);
+                  }
+                }
+              } else {
+                $this->get_titles($type, $folder->folder);
+              }
+            break;
+            case IMDB_S:
+              $this->get_titles($type, $folder->folder);
+            break;
+          }
+        }
+      }
+    }
+
+    printR($this->_movies);
+    printR($this->_series);
+  }
+
+  private function get_titles($type, $dir) {
+    $titles = array();
+    if ($d = @dir($dir)) {
+      while (false !== ($entry = $d->read())) {
+        if (!in_array($entry, array('.', '..'))) {
+          $this->{'_'.$type}[] = array(
+            'title' => $entry,
+            'path' => $dir.$entry,
+            'files' => $this->get_files($type, $dir.$entry, $entry),
+          );
+        }
+      }
+    }
+    return $titles;
+  }
+
+  private function get_files($type, $dir, $title) {
+    $files = array();
+    if ($d = @dir($dir)) {
+      $getID3 = new getID3();
+      while (false !== ($entry = $d->read())) {
+        if (!in_array($entry, array('.', '..'))) {
+          if (is_dir($dir.'/'.$entry)) {
+            $files[$entry] = $this->get_files($type, $dir.'/'.$entry, $title);
+          } else {
+            $files[] = array(
+              'valid' => $this->check_file($type, $entry, $title),
+              'file' => $dir.'/'.$entry,
+              'info' => (in_array($this->check_file($type, $entry, $title), array(0, 1))) ? $this->core->array_to_object($getID3->format_analyze($dir.'/'.$entry)) : '',
+            );
+          }
+        }
+      }
+    }
+
+    return $files;
+  }
+
+  private function check_file($type, $file, $title) {
+    $valid = -1;
+    $ext = pathinfo($file, PATHINFO_EXTENSION);
+    if (in_array($ext, $this->_extensions['video'])) {
+      switch($type) {
+        case IMDB_M:
+          $valid = preg_match('/^([a-zA-Z0-9\ -]+)(\.[a-z]{3,4})$/', $file);
+        break;
+        case IMDB_S:
+          $valid = preg_match('/^([a-zA-Z0-9\ ]+)(\ -\ )(S[0-9][0-9]E[0-9][0-9])(\ -\ )?([a-zA-Z0-9\ ]+)?(\.[a-z]{3,4})$/', $file);
+        break;
+      }
+    } else if (in_array($ext, $this->_extensions['subtitle'])) {
+      $valid = 2;
+    }
+
+    return $valid;
+  }
+
+  public function convert_filesize($size, $format = 'KB') {
+    $formats = array('B', 'KB', 'MB', 'GB', 'TB');
+    $round = array('B', 'KB', 'MB');
+    $convert = false;
+    $type = $formats[0];
+    foreach($formats as $key => $val) {
+      if ($val == $format) {
+        $convert = true;
+      }
+      if ($convert) {
+        if ($size > 1024) {
+          $type = $val;
+          if (in_array($val, $round)) {
+            $size = round($size/1024);
+          } else {
+            $size = round($size/1024, 2);
+          }
+        } else {
+          break;
+        }
+      }
+    }
+    return $size.$type;
   }
 }
 ?>

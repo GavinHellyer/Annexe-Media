@@ -11,10 +11,28 @@ class template extends effects {
   private $_css;
   private $_js;
   private $_actions;
+  private $_theme;
+  public $app;
 
   public function __construct() {
     parent::__construct();
     $this->defines('LOADED_TEMPLATE', true);
+
+    $this->set_theme('loader');
+  }
+
+  public function set_theme($theme) {
+    $this->_theme = $theme;
+  }
+
+  public function load_theme() {
+    if (file_exists(SERVER_ROOT.'css/theme/'.$this->_theme.'.less')) {
+      //$this->load_cjs('_css', 'gen', 'theme', 'theme/'.$this->_theme.'.less');
+      $this->load_file('theme/'.$this->_theme.'.less');
+    } else if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/theme/'.$this->_theme.'.less')) {
+      //$this->load_cjs('_css', 'app', $this->_current_app, 'theme/'.$this->_theme.'.less');
+      $this->load_file($this->_current_app.'/theme/'.$this->_theme.'.less');
+    }
   }
 
   public function load_base_template() {
@@ -60,7 +78,7 @@ class template extends effects {
       if (is_dir(SERVER_ROOT.'apps/'.$app)) {
         $this->_current_app = $app;
         $this->reset_cjs();
-        
+
         if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini')) {
           $this->load_config(SERVER_ROOT.'apps/'.$this->_current_app.'/config.ini');
           if (defined('APP_TITLE')) {
@@ -85,10 +103,16 @@ class template extends effects {
           foreach ($class as $order => $entry) {
             require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/class/'.$entry);
           }
+
+          $this->app = new loader();
         }
-        
+
         if (defined('SCHEMA')) {
           $this->set_schema(SCHEMA)->open();
+        }
+
+        if (defined('THEME')) {
+          $this->set_theme(THEME);
         }
         
         return $this;
@@ -251,11 +275,17 @@ class template extends effects {
   public function load_file($file, $id = false, $type = false) {
     $ext = $this->get_file_extension($file);
     switch ($ext) {
+      case 'less':
       case 'css':
-        if (file_exists($this->_files->cssRoot.$file)) {
-          $_file_src = $this->_files->css.$file;
-          $_file_server = $this->_files->cssRoot.$file;
-          echo '<link rel="stylesheet" type="text/css" href="'.$_file_src.'?ver='.$this->get_file_comments($_file_server)->ver.'" media="all"'.(($id) ? ' id="'.str_replace('_', '-', $id).'-css"' : '').'>'."\n";
+        if (file_exists($this->_files->cssRoot.$file) || file_exists($this->_files->appRoot.$file)) {
+          if (file_exists($this->_files->appRoot.$file)) {
+            $_file_src = $this->_files->app.$file;
+            $_file_server = $this->_files->appRoot.$file;
+          } else {
+            $_file_src = $this->_files->css.$file;
+            $_file_server = $this->_files->cssRoot.$file;
+          }
+          echo '<link rel="stylesheet'.(($ext == 'less') ? '/less' : '').'" type="text/css" href="'.$_file_src.'?ver='.$this->get_file_comments($_file_server)->ver.'" media="all"'.(($id) ? ' id="'.str_replace('_', '-', $id).'-css"' : '').'>'."\n";
           break;
         } else if ($type) {
           $typeRoot = $type.'Root';
@@ -309,13 +339,15 @@ class template extends effects {
           foreach ($loader as $name => $file) {
             if ($file) {
               if ($type == 'gen') {
-                $cjs_file = $this->_files->$_type.'/'.$file;
+                $cjs_file = $this->_files->$_type.$file;
+              } else if ($type == 'app') {
+                $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
+                $cjs_file = $this->_files->$type.$name.'/'.$cjs;
               } else {
                 $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
-                $cjs_file = $this->_files->$type.'/'.$name.'/'.$_type.'/'.$cjs;
+                $cjs_file = $this->_files->$type.$name.'/'.$_type.'/'.$cjs;
               }
               if ($_type == 'css') {
-                //$contents .= CssMin::minify(file_get_contents($cjs_file))."\n\n";
                 $contents .= file_get_contents($cjs_file)."\n\n";
               } else {
                 $contents .= file_get_contents($cjs_file)."\n\n";

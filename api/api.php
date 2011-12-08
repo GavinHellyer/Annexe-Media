@@ -7,7 +7,7 @@ if (!isset($_SESSION)) {
   session_start();
 }
 
-$core = new template;
+$core = new gva;
 //if (isset($_SESSION['gva-framework']['core'])) {
 //  $core = &$_SESSION['gva-framework']['core'];
 //  $core->redefine();
