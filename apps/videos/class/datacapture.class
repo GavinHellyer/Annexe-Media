@@ -6,7 +6,7 @@
 class datacapture {
   public $core;
   private $_path = false;
-  private $_folders;
+  public $_folders;
   private $_movies;
   private $_series;
   private $_extensions = array('video' => array('avi', 'mkv', 'mp4'), 'subtitle' => array('sub', 'srt'));
@@ -22,7 +22,7 @@ class datacapture {
     }
   }
 
-  public function drives() {
+  public function get_drives() {
     $try = array();
     if ($this->_path) {
       if (is_dir($this->_path)) {

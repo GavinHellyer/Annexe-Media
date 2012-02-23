@@ -16,6 +16,7 @@ jQuery(function($) {
   // Clear Less Cache
   less.env = 'development';
   destroyLessCache('/apps/videos/theme/green.less');
+  destroyLessCache('/css/theme/loader.less');
 });
 
 // Destroys the localStorage copy of CSS that less.js creates
@@ -31,5 +32,4 @@ var destroyLessCache = function(pathToCss) { // e.g. '/css/' or '/stylesheets/'
       delete window.localStorage[key];
     }
   }
-  console.log('Clearing Less.js Local Storage');
 }

@@ -18,7 +18,7 @@ class database extends security {
       if (file_exists($this->_files->db.$schema.'.db')) {
         $this->_schema = $schema.'.db';
         $this->_schema_bak = BAKUP_DATE.'_'.$schema.'.db.bak';
-        
+
         return $this;
       }
       return false;

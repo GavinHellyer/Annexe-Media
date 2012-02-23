@@ -1,0 +1,9 @@
+.temp-folder-list ul {
+  list-style: none;
+}
+
+.temp-folder-list ul li.folder-item-header {
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-left: -10px;
+}

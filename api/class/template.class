@@ -114,7 +114,7 @@ class template extends effects {
         if (defined('THEME')) {
           $this->set_theme(THEME);
         }
-        
+
         return $this;
       }
       $this->error('App Not Found');

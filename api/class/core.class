@@ -226,7 +226,9 @@ class core {
         if ($i % 2) {
           $_REQUEST[$url[$i-1]] = (($url[$i]) ? $url[$i] : true);
         } else {
-          $_REQUEST[$url[$i]] = true;
+          if ($url[$i]) {
+            $_REQUEST[$url[$i]] = true;
+          }
         }
       }
     }
