@@ -31,12 +31,12 @@
 }
 
 .temp-item-list .rating-overlay {
-  background: url(../img/stars_15x15.png) 0 0 repeat-x;
+  background: url(template/item_list/img/stars_15x15.png) 0 0 repeat-x;
   width: 75px;
   height: 15px;
 }
 
 .temp-item-list .rating-overlay div {
-  background: url(../img/stars_15x15.png) 0 -15px repeat-x;
+  background: url(template/item_list/img/stars_15x15.png) 0 -15px repeat-x;
   height: 15px;
 }

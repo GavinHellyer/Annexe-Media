@@ -28,9 +28,9 @@ class database extends security {
   
   public function open() {
     if (file_exists($this->_files->db.$this->_schema)) {
-      if (file_exists("DB.php")) {
-        require_once "DB.php";
-        require_once "DB/sqlite.php";
+      if (file_exists("/usr/share/pear/DB.php")) {
+        require_once "/usr/share/pear/DB.php";
+        require_once "/usr/share/pear/DB/sqlite.php";
       } else {
         require_once(SERVER_ROOT."include/database/DB.php");
         require_once(SERVER_ROOT."include/database/DB/sqlite.php");
