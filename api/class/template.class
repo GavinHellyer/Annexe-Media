@@ -113,6 +113,8 @@ class template extends effects {
 
         if (defined('THEME')) {
           $this->set_theme(THEME);
+        } else if (isset($_REQUEST['theme']) && $_REQUEST['theme'] == 'green') {
+          $this->set_theme('green');
         }
 
         return $this;
