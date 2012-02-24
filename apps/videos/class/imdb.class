@@ -148,7 +148,7 @@ class imdb extends datacapture {
     }
   }
 
-  private function get_imdb_episodes($imdb_data = false) {
+  public function get_imdb_episodes($imdb_data = false) {
     if ($imdb_data) {
       if ($imdb_data->type == IMDB_S) {
         if ($imdb_data->link) {
@@ -182,29 +182,21 @@ class imdb extends datacapture {
     if (defined('PLUGIN_PHPQUERY')) {
       if ($data) {
         $phpQuery = phpQuery::newDocumentHTML($data);
-        if (count($phpQuery['.season-filter-all']) > 0) {
+        if (count($phpQuery['#tn15content']) > 0) {
           $seriesInfo = array();
-          foreach ($phpQuery['.season-filter-all'] as $season) {
-            $seasonNumber = str_ireplace(array("\n", "\r", "season", " "), "", pq($season)->find('.season-header')->html());
-            if (is_numeric($seasonNumber)) {
-              foreach (pq($season)->find('.filter-all') as $episode) {
-                $episodeInfo = pq($episode)->find('h3');
-                preg_match('/(, .[^:]*)/', $episodeInfo->remove('a')->html(), $episodeNumber);
-                $episodeNumber = str_ireplace(array("episode", " ", ","), "", $episodeNumber[0]);
-                $episodeName = $episodeInfo->find('a')->html();
-                $episodeInfo = pq($episode)->find('td');
-                $episodeInfo->find('h3,div')->remove();
-                $episodeInfo = explode("<br>", $episodeInfo->html());
-                $episodeDescription = trim(strip_tags($episodeInfo[1]));
-                $episodeDate = strtotime(pq($episodeInfo[0])->find('strong')->html());
-                $seriesInfo[] = array(
-                  'season' => $seasonNumber,
-                  'episode' => $episodeNumber,
-                  'name' => $episodeName,
-                  'description' => $episodeDescription,
-                  'date' => $episodeDate
-                );
-              }
+          $phpQuery['#tn15content']->contents()->not('[nodeType=1]')->wrap('<description/>');
+          foreach ($phpQuery['#tn15content']->children() as $row) {
+            $element = pq($row)->get(0)->tagName;
+            if ($element == 'h4') {
+              $episode = array('season' => '0', 'episode' => '0', 'name' => '', 'description' => '', 'date' => '');
+              $episode['name'] = pq($row)->find('a')->html();
+              pq($row)->find('a')->remove();
+              $season_episode = explode(',', str_ireplace(array('season', 'episode', ' ', ':', "\n", "\r"), '', pq($row)->html()));
+              $episode['season'] = $season_episode[0];
+              $episode['episode'] = $season_episode[1];
+              $episode['date'] = strtotime(pq($row)->next()->html());
+              $episode['description'] = (pq($row)->next()->next()->next()->get(0)->tagName == 'description') ? pq($row)->next()->next()->next()->html() : '';
+              $seriesInfo[] = $episode;
             }
           }
           if (count($seriesInfo) > 0) {

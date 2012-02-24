@@ -1,7 +1,17 @@
 <?php
+$output = $_REQUEST;
+
 $this->app->get_drives();
+if (isset($_REQUEST['id'])) {
+  $found = $this->app->core->select('*', 'items', array('id' => $_REQUEST['id'], 'type' => IMDB_S));
+  if ($found) {
+    $output = $this->app->get_imdb_episodes($this->app->core->single($found));
+  }
+}
+
 if (isset($_REQUEST['title'])) {
-  $this->app->get_imdb($_REQUEST['title']);
+  $type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
+  $this->app->get_imdb($_REQUEST['title'], false, $type);
 }
 ?>
 <!-- header -->
@@ -15,7 +25,7 @@ if (isset($_REQUEST['title'])) {
       </div>
     </div>
     <div class="content">
-      <div class="hero-unit"><?php printR($_REQUEST) ?></div>
+      <div class="hero-unit"><?php printR($output) ?></div>
     </div>
   </div>
 <!-- footer -->
