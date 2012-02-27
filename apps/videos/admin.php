@@ -25,7 +25,7 @@ if (isset($_REQUEST['title'])) {
       </div>
     </div>
     <div class="content">
-      <div class="hero-unit"><?php printR($output) ?></div>
+      <div class="hero-unit"><?php $this->app->get_videos(); printR($output); ?></div>
     </div>
   </div>
 <!-- footer -->

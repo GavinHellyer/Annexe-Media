@@ -9,6 +9,7 @@ class imdb extends datacapture {
     $this->core->defines('LOADED_IMDB', true);
     $this->core->defines('IMDB_M', 'movies');
     $this->core->defines('IMDB_S', 'series');
+    $this->core->defines('IMDB_O', 'other');
   }
   
   public function load_by_id($id = false) {

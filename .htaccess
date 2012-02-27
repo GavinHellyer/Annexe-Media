@@ -2,4 +2,4 @@ Options +FollowSymlinks
 RewriteEngine on
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule (.[^/]+)(/)?(.*)? ?app=$1&extract_url=$3
+RewriteRule (.[^/]+)(/)?(.*)? ?app=$1&extract_url=$3 [QSA]

@@ -133,7 +133,7 @@ abstract class Zend_Validate_Abstract implements Zend_Validate_Interface
     }
 
     /**
-     * Sets validation failure message templates given as an array, where the array keys are the message keys,
+     * Sets validation failure message template given as an array, where the array keys are the message keys,
      * and the array values are the message template strings.
      *
      * @param  array $messages

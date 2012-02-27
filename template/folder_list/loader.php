@@ -3,6 +3,7 @@
  * @ver 1.0
  * @template List of Folder Path Items
  * @css true
+ * @js true
 */
 ?>
 <?php if ($items) { ?>
@@ -21,7 +22,7 @@
 
     <?php foreach($_item as $_index) { ?>
 
-      <li class="folder-item">
+      <li class="folder-item" data-format="folder-normal">
 
         <?php echo $_index->folder; ?>
 

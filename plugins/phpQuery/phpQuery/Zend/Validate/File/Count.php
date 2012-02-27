@@ -42,7 +42,7 @@ class Zend_Validate_File_Count extends Zend_Validate_Abstract
     /**#@-*/
 
     /**
-     * @var array Error message templates
+     * @var array Error message template
      */
     protected $_messageTemplates = array(
         self::TOO_MUCH => "Too much files, only '%value%' are allowed",

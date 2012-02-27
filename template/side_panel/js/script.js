@@ -2,19 +2,19 @@
  * @ver 1.0
 */
 jQuery(function($) {
-  jQuery('body').live("click", function() {
+  jQuery('body').on("click", function() {
     jQuery(this).side_panel_hide();
   });
   
-  jQuery('.side-panel').live("click", function(e) {
+  jQuery('.side-panel').on("click", function(e) {
     e.stopPropagation();
   });
   
-  jQuery('.side-panel-container').live('mouseenter', function() {
+  jQuery('.side-panel-container').on('mouseenter', function() {
     jQuery('.side-panel-container-content', this).stop(true, true).slideDown(400);
   });
   
-  jQuery('.side-panel-container').live('mouseleave', function() {
+  jQuery('.side-panel-container').on('mouseleave', function() {
     jQuery('.side-panel-container-content', this).stop(true, true).slideUp(400);
   });
 });

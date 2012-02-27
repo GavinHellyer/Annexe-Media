@@ -50,7 +50,7 @@ class Zend_Validate_File_Upload extends Zend_Validate_Abstract
     /**@#-*/
 
     /**
-     * @var array Error message templates
+     * @var array Error message template
      */
     protected $_messageTemplates = array(
         self::INI_SIZE       => "The file '%value%' exceeds the defined ini size",

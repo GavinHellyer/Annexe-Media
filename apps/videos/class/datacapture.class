@@ -6,10 +6,11 @@
 class datacapture {
   public $core;
   private $_path = false;
-  public $_folders;
+  private $_folders;
   private $_movies;
   private $_series;
-  private $_extensions = array('video' => array('avi', 'mkv', 'mp4'), 'subtitle' => array('sub', 'srt'));
+  private $_other;
+  private $_extensions = array('video' => array('avi', 'mkv', 'mp4', 'ogm', 'wmv'), 'subtitle' => array('sub', 'srt'));
 
   public function __construct() {
     global $core;
@@ -17,14 +18,28 @@ class datacapture {
 
     $this->core->defines('LOADED_DIRECTORY', true);
 
-    if (is_dir('/home/0external/')) {
-      $this->_path = '/home/0external/';
+    if (is_dir('/home/0common')) {
+      $this->_path = '/home/0common/Media';
     }
+  }
+
+  public function get_folders() {
+    return $this->_folders;
+  }
+
+  public function get_files_by_type($type) {
+    if (isset($this->{'_'.$type})) {
+      return $this->{'_'.$type};
+    }
+    return $this->_other;
+    return false;
   }
 
   public function get_drives() {
     $try = array();
     if ($this->_path) {
+      $try[] = $this->_path;
+      $this->_path = '/home/0external';
       if (is_dir($this->_path)) {
         if ($d = @dir($this->_path)) {
           while (false !== ($entry = $d->read())) {
@@ -35,7 +50,7 @@ class datacapture {
         }
       }
     } else {
-      for($d = 'D'; $d <= 'Z'; $d++) {
+      for($d = 'C'; $d <= 'Z'; $d++) {
         $try[] = $d.':';
       }
     }
@@ -59,6 +74,13 @@ class datacapture {
             $this->_folders->series[] = $this->core->array_to_object(
               array(
                 'folder' => $path.'/Series/',
+              )
+            );
+          }
+          if (is_dir($path.'/Downloads/')) {
+            $this->_folders->other[] = $this->core->array_to_object(
+              array(
+                'folder' => $path.'/Downloads/',
               )
             );
           }
@@ -90,24 +112,29 @@ class datacapture {
             case IMDB_S:
               $this->get_titles($type, $folder->folder);
             break;
+            case IMDB_O:
+              $this->{'_'.$type}[] = array(
+                'title' => 'Other',
+                'path' => $folder->folder,
+                'files' => $this->get_files($type, $folder->folder, ''),
+              );
+            break;
           }
         }
       }
     }
-
-    printR($this->_movies);
-    printR($this->_series);
+    return $this;
   }
 
   private function get_titles($type, $dir) {
     $titles = array();
     if ($d = @dir($dir)) {
       while (false !== ($entry = $d->read())) {
-        if (!in_array($entry, array('.', '..'))) {
+        if (substr($entry, 0, 1) != '.') {
           $this->{'_'.$type}[] = array(
             'title' => $entry,
             'path' => $dir.$entry,
-            'files' => $this->get_files($type, $dir.$entry, $entry),
+            'files' => $this->get_files($type, $dir.'/'.$entry, $entry),
           );
         }
       }
@@ -120,13 +147,13 @@ class datacapture {
     if ($d = @dir($dir)) {
       $getID3 = new getID3();
       while (false !== ($entry = $d->read())) {
-        if (!in_array($entry, array('.', '..'))) {
+        if (substr($entry, 0, 1) != '.') {
           if (is_dir($dir.'/'.$entry)) {
             $files[$entry] = $this->get_files($type, $dir.'/'.$entry, $title);
           } else {
             $files[] = array(
               'valid' => $this->check_file($type, $entry, $title),
-              'file' => $dir.'/'.$entry,
+              'file' => $dir.$entry,
               'info' => (in_array($this->check_file($type, $entry, $title), array(0, 1))) ? $this->core->array_to_object($getID3->format_analyze($dir.'/'.$entry)) : '',
             );
           }
@@ -147,6 +174,12 @@ class datacapture {
         break;
         case IMDB_S:
           $valid = preg_match('/^([a-zA-Z0-9\ ]+)(\ -\ )(S[0-9][0-9]E[0-9][0-9])(\ -\ )?([a-zA-Z0-9\ ]+)?(\.[a-z]{3,4})$/', $file);
+        break;
+        case IMDB_O:
+          $valid = preg_match('/^([a-zA-Z0-9\ -]+)(\.[a-z]{3,4})$/', $file);
+          if (!$valid) {
+            $valid = preg_match('/^([a-zA-Z0-9\ ]+)(\ -\ )(S[0-9][0-9]E[0-9][0-9])(\ -\ )?([a-zA-Z0-9\ ]+)?(\.[a-z]{3,4})$/', $file);
+          }
         break;
       }
     } else if (in_array($ext, $this->_extensions['subtitle'])) {

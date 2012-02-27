@@ -41,7 +41,7 @@ class Zend_Validate_File_Extension extends Zend_Validate_Abstract
     const NOT_FOUND       = 'fileExtensionNotFound';
 
     /**
-     * @var array Error message templates
+     * @var array Error message template
      */
     protected $_messageTemplates = array(
         self::FALSE_EXTENSION => "The file '%value%' has a false extension",

@@ -16,8 +16,25 @@ class ajax extends template {
         call_user_func(array($this, $action), $_POST);
       } else if (method_exists($this->app, $action)) {
         call_user_func(array($this->app, $action), $_POST);
+      } else {
+        echo $this->format_response(false, 'Method not found.');
       }
+    } else {
+      echo $this->format_response(false, 'No Action set.');
     }
+
+    exit;
+  }
+
+  public function format_response($result = false, $data = '') {
+    $response = array('result' => $result);
+    if ($result) {
+      $response['data'] = $data;
+    } else {
+      $response['error'] = $data;
+    }
+
+    return json_encode($response);
   }
 }
 ?>

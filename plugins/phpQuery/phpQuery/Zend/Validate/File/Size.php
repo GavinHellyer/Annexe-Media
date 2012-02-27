@@ -43,7 +43,7 @@ class Zend_Validate_File_Size extends Zend_Validate_Abstract
     /**#@-*/
     
     /**
-     * @var array Error message templates
+     * @var array Error message template
      */
     protected $_messageTemplates = array(
         self::TOO_BIG   => "The file '%value%' is bigger than allowed",

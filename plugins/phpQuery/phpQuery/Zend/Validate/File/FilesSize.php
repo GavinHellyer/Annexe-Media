@@ -42,7 +42,7 @@ class Zend_Validate_File_FilesSize extends Zend_Validate_File_Size
     const NOT_READABLE = 'fileFilesSizeNotReadable';
 
     /**
-     * @var array Error message templates
+     * @var array Error message template
      */
     protected $_messageTemplates = array(
         self::TOO_BIG      => "The files in sum exceed the maximum allowed size",
