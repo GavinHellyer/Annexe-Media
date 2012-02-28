@@ -1,0 +1,100 @@
+<div class="form-horizontal page-header">
+  <fieldset>
+    <div class="control-group">
+      <label class="control-label">File:</label>
+      <div class="controls">
+        <h3 title="{item.file}">{formatString(item.file, "folder", "normal")}</h3>
+      </div>
+    </div>
+  </fieldset>
+
+  <table class="table table-bordered table-striped hidden-items" data-hidden="File Information">
+    <thead>
+      <tr>
+        <th>File Path</th>
+        <th>File Size</th>
+        <th>Runtime</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{item.info.filepath}</td>
+        <td>{item.info.filesize}</td>
+        <td>{item.info.runtime}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="row-fluid hidden-items" data-hidden="Audio / Video Information">
+    <div class="span6">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th colspan="2">Audio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bitrate:</td>
+            <td>{item.info.audio_bitrate}</td>
+          </tr>
+          <tr>
+            <td>Channel Mode:</td>
+            <td>{item.info.audio_channelmode}</td>
+          </tr>
+          <tr>
+            <td>Channels:</td>
+            <td>{item.info.audio_channels}</td>
+          </tr>
+          <tr>
+            <td>Codec:</td>
+            <td>{item.info.audio_codec}</td>
+          </tr>
+          <tr>
+            <td>Format:</td>
+            <td>{item.info.audio_format}</td>
+          </tr>
+          <tr>
+            <td>Sample Rate:</td>
+            <td>{item.info.audio_sample_rate}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="span6">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th colspan="2">Video</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Bitrate:</td>
+            <td>{item.info.video_bitrate}</td>
+          </tr>
+          <tr>
+            <td>Resolution X:</td>
+            <td>{item.info.video_resolution_x}</td>
+          </tr>
+          <tr>
+            <td>Resolution Y:</td>
+            <td>{item.info.video_resolution_y}</td>
+          </tr>
+          <tr>
+            <td>Codec:</td>
+            <td>{item.info.video_codec}</td>
+          </tr>
+          <tr>
+            <td>Format:</td>
+            <td>{item.info.video_format}</td>
+          </tr>
+          <tr>
+            <td>Frame Rate:</td>
+            <td>{item.info.video_frame_rate}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

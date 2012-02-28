@@ -45,7 +45,7 @@ var ajx = function(options) {
     dataType: 'json',
     loader: false,
     fillContainer: true,
-    finished: function(msg) { console.log( msg ); },
+    finished: function(data) { console.log( data ); },
     failed: function(jqXHR, textStatus) { console.log( "Request failed: " + textStatus ); }
   };
   var opts = jQuery.extend({}, defaults, options);
@@ -137,22 +137,42 @@ jQuery.fn.format = function(options) {
 
     for (var i = 0; i < formats.length; i++) {
       var format = formats[i].split('-');
-
-      switch(format[0]) {
-        case 'folder':
-          switch(format[1]) {
-            case 'normal':
-              var data = jQuery.trim(obj.html());
-              var matches = data.match(/^(([a-z][:][\/]?)||([\/][a-z]+[\/]))?(.*)([\/][a-z-_]+[\/]?)$/i);
-
-              if (matches && (matches[1] + matches[5] != data)) {
-                obj.attr('title', data);
-                obj.html(matches[1] + '...' + matches[5]);
-              }
-            break;
-          }
-        break;
-      }
+      var string = jQuery.trim(obj.html());
+      var new_string = formatString(string, format[0], format[1]);
+      obj.attr('title', string);
+      obj.html(new_string);
     }
   });
 };
+
+var formatString = function(string, type, format) {
+  var old_string = string;
+  switch(type) {
+    case 'folder':
+      switch(format) {
+        case 'normal':
+          var matches = string.match(/^(([a-z][:][\/]?)||([\/][a-z]+[\/]))?(.*)([\/][a-z0-9-_\.]+[\/]?)$/i);
+          if (matches && (matches[1] + matches[5] != string)) {
+            string = matches[1] + '...' + matches[5];
+          }
+        break;
+      }
+    break;
+  }
+  return string;
+};
+
+var hiddenData = function() {
+  jQuery('[data-hidden]').each(function(i, data) {
+    if (!jQuery(data).parent().hasClass('hidden-data-container')) {
+      jQuery(data).before('<div class="hidden-data-container"><div class="hidden-data-show"></div><div class="hidden-data-title">' + jQuery(data).attr('data-hidden') + '</div></div>');
+      jQuery(data).prev().append(jQuery(data).outerHTML());
+      jQuery(data).remove();
+    }
+  });
+};
+
+jQuery('.hidden-data-show').live("click", function() {
+  console.log("clicked");
+  jQuery(this).parent().children('[data-hidden]').toggle(200);
+});

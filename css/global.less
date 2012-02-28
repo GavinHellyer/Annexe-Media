@@ -12,6 +12,7 @@ html {
 
 body {
   background: url(../img/clear.png) 0 0 repeat-x @bodyBackground;
+  background-color: @bodyBackground !important;
   #gradient > .vertical(@bodyGradientFirst, @bodyGradientLast);
   font-size: 12px;
   font-family: 'Droid Sans', sans-serif;
@@ -93,6 +94,16 @@ a[data-tooltip] {
   text-shadow:@tooltipTextShadow 0 1px 0px;
 }
 
+/* layouts */
+.sidebar {
+  float: @sidebarPosition;
+  width: @sidebarWidth;
+}
+
+.content {
+  margin-left: (@sidebarWidth + @gridGutterWidth);
+}
+
 /* ajax / loaders */
 #ajax_loader {
   position: absolute;
@@ -112,7 +123,41 @@ a[data-tooltip] {
 }
 
 .spinner {
-  background: url(/img/spinner_large.png) center center no-repeat;
+  background: url(../../img/spinner_large.png) center center no-repeat;
   width: 128px;
   height: 128px;
+}
+
+/* hidden items */
+.hidden-items {
+  display: none;
+  margin-top: 10px;
+}
+
+.hidden-data-container {
+  padding: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #DDD;
+  border-collapse: separate;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+}
+
+.hidden-data-title {
+  margin-left: 30px;
+}
+
+.hidden-data-show {
+  position: absolute;
+  margin-left: -2px;
+  margin-top: -1px;
+  background: url(../../img/btn_open.png) 0 0 no-repeat;
+  background-position: 0 -20px;
+  width: 20px;
+  height: 20px;
+}
+
+.hidden-data-show:hover {
+  background-position: 0 0;
 }

@@ -7,7 +7,11 @@ jQuery(function($) {
     ajx({
       action: 'get_files',
       data: { type: type },
-      loader: '.hero-unit'
+      loader: '.hero-unit',
+      finished: function(data) {
+        var tpl = new TplFileList(data, jQuery('.hero-unit'));
+        tpl.render();
+      }
     });
   });
 });

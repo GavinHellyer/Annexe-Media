@@ -1,3 +1,13 @@
+/*!
+ * Bootstrap v2.0.1
+ *
+ * Copyright 2012 Twitter, Inc
+ * Licensed under the Apache License v2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Designed and built with all the love in the world @twitter by @mdo and @fat.
+ */
+
 // CSS Reset
 @import "../bootstrap/reset.less";
 
@@ -7,12 +17,49 @@
 
 // Grid system and page structure
 @import "../bootstrap/scaffolding.less";
+@import "../bootstrap/grid.less";
+@import "../bootstrap/layouts.less";
 
-// Styled patterns and elements
+// Base CSS
 @import "../bootstrap/type.less";
+@import "../bootstrap/code.less";
 @import "../bootstrap/forms.less";
 @import "../bootstrap/tables.less";
-@import "../bootstrap/patterns.less";
+
+// Components: common
+@import "../bootstrap/sprites.less";
+@import "../bootstrap/dropdowns.less";
+@import "../bootstrap/wells.less";
+@import "../bootstrap/component-animations.less";
+@import "../bootstrap/close.less";
+
+// Components: Buttons & Alerts
+@import "../bootstrap/buttons.less";
+@import "../bootstrap/button-groups.less";
+@import "../bootstrap/alerts.less"; // Note: alerts share common CSS with buttons and thus have styles in buttons.less
+
+// Components: Nav
+@import "../bootstrap/navs.less";
+@import "../bootstrap/navbar.less";
+@import "../bootstrap/breadcrumbs.less";
+@import "../bootstrap/pagination.less";
+@import "../bootstrap/pager.less";
+
+// Components: Popovers
+@import "../bootstrap/modals.less";
+@import "../bootstrap/tooltip.less";
+@import "../bootstrap/popovers.less";
+
+// Components: Misc
+@import "../bootstrap/thumbnails.less";
+@import "../bootstrap/labels.less";
+@import "../bootstrap/progress-bars.less";
+@import "../bootstrap/accordion.less";
+@import "../bootstrap/carousel.less";
+@import "../bootstrap/hero-unit.less";
+
+// Utility classes
+@import "../bootstrap/utilities.less"; // Has to be last to override when necessary
 
 // The Main Colors
 @color0:#FFFFFF;
@@ -27,10 +74,12 @@
 @color9:#2187C8;
 
 // Default Theme
-@bodyBackground:@color0;
+@bodyBackground:@color2;
 @bodyGradientFirst:@color1;
 @bodyGradientLast:@color2;
 @bodyFontColor:@color3;
+
+@heroUnitBackground:@color0;
 
 @tooltipBorder:@color4;
 @tooltipGradientFirst:@color5;
@@ -39,3 +88,6 @@
 @tooltipBackground:@color2;
 @tooltipBoxShadow:@color6;
 @tooltipTextShadow:@color9;
+
+@sidebarPosition:left;
+@sidebarWidth:200px;

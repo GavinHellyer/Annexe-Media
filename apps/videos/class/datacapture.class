@@ -134,7 +134,7 @@ class datacapture {
           $this->{'_'.$type}[] = array(
             'title' => $entry,
             'path' => $dir.$entry,
-            'files' => $this->get_files($type, $dir.'/'.$entry, $entry),
+            'files' => $this->get_files($type, $dir.'/'.$entry.'/', $entry),
           );
         }
       }
@@ -148,8 +148,8 @@ class datacapture {
       $getID3 = new getID3();
       while (false !== ($entry = $d->read())) {
         if (substr($entry, 0, 1) != '.') {
-          if (is_dir($dir.'/'.$entry)) {
-            $files[$entry] = $this->get_files($type, $dir.'/'.$entry, $title);
+          if (is_dir($dir.$entry)) {
+            $files[$entry] = $this->get_files($type, $dir.$entry.'/', $title);
           } else {
             $files[] = array(
               'valid' => $this->check_file($type, $entry, $title),
