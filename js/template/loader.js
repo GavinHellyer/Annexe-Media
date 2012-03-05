@@ -32,6 +32,7 @@ var TemplateCore = Class.create({
   },
 
   replaceViewItem: function(item) {
+    item.info = new Array();
     var eval_string = "var render = '" +
       this.view.replace(/\{/g, "' + this.validate(")
         .replace(/\}/g, ") + '")
@@ -84,9 +85,3 @@ var TplFileList = Class.create({
     }
   }
 });
-
-jQuery.fn.outerHTML = function(s) {
-  return s
-    ? this.before(s).remove()
-    : jQuery("<p>").append(this.eq(0).clone()).html();
-};

@@ -9,9 +9,10 @@ class loader extends imdb {
   }
 
   public function ajax_get_files() {
-    $type = isset($_POST['type']) ? $_POST['type'] : false;
+    $limit_type = isset($_POST['limit_type']) ? $_POST['limit_type'] : false;
+    $limit_folder = isset($_POST['limit_folder']) ? $_POST['limit_folder'] : false;
 
-    echo $this->core->format_response(true, $this->get_drives()->get_videos()->get_files_by_type($type));
+    echo $this->core->format_response(true, $this->get_drives()->get_structure($limit_type, $limit_folder)->_get_type($limit_type));
   }
 }
 ?>

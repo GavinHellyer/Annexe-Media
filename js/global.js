@@ -14,8 +14,12 @@ jQuery.fn.exists = function() {
 jQuery(function() {
   // Clear Less Cache
   less.env = 'development';
-  destroyLessCache('/apps/videos/theme/green.less');
+  destroyLessCache('/GVA-Framework/css/theme/loader.less');
   destroyLessCache('/css/theme/loader.less');
+  destroyLessCache('/GVA-Framework/css/theme/green.less');
+  destroyLessCache('/css/theme/green.less');
+  destroyLessCache('/GVA-Framework/css/theme/default.less');
+  destroyLessCache('/css/theme/default.less');
 
   jQuery('[data-format]').format();
 });
@@ -151,7 +155,7 @@ var formatString = function(string, type, format) {
     case 'folder':
       switch(format) {
         case 'normal':
-          var matches = string.match(/^(([a-z][:][\/]?)||([\/][a-z]+[\/]))?(.*)([\/][a-z0-9-_\.]+[\/]?)$/i);
+          var matches = string.match(/^(([a-z][:][\/]?)||([\/][a-z]+[\/]))?(.*)([\/][a-zA-Z0-9-_\.\[\]\,\'\(\)\s]+[\/]?)$/i);
           if (matches && (matches[1] + matches[5] != string)) {
             string = matches[1] + '...' + matches[5];
           }
@@ -173,6 +177,11 @@ var hiddenData = function() {
 };
 
 jQuery('.hidden-data-show').live("click", function() {
-  console.log("clicked");
   jQuery(this).parent().children('[data-hidden]').toggle(200);
 });
+
+jQuery.fn.outerHTML = function(s) {
+  return s
+    ? this.before(s).remove()
+    : jQuery("<p>").append(this.eq(0).clone()).html();
+};

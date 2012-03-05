@@ -14,7 +14,7 @@
 
   <?php foreach($_items as $_item_header => $_item) { ?>
 
-    <li class="folder-item-header">
+    <li class="folder-item-header" data-ajax="<?php echo $_item_header; ?>">
 
       <?php echo $_item_header; ?>
 
@@ -22,7 +22,7 @@
 
     <?php foreach($_item as $_index) { ?>
 
-      <li class="folder-item" data-format="folder-normal">
+      <li class="folder-item" data-format="folder-normal" data-ajax="<?php echo $_index->folder; ?>">
 
         <?php echo $_index->folder; ?>
 

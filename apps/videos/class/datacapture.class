@@ -10,6 +10,7 @@ class datacapture {
   private $_movies;
   private $_series;
   private $_other;
+  private $_types = array('movies', 'series', 'other');
   private $_extensions = array('video' => array('avi', 'mkv', 'mp4', 'ogm', 'wmv'), 'subtitle' => array('sub', 'srt'));
 
   public function __construct() {
@@ -23,15 +24,14 @@ class datacapture {
     }
   }
 
-  public function get_folders() {
+  public function _folders() {
     return $this->_folders;
   }
 
-  public function get_files_by_type($type) {
-    if (isset($this->{'_'.$type})) {
+  public function _get_type($type) {
+    if ($type && isset($this->{'_'.$type})) {
       return $this->{'_'.$type};
     }
-    return $this->_other;
     return false;
   }
 
@@ -87,38 +87,39 @@ class datacapture {
         }
       }
     }
-
     return $this;
   }
 
-  public function get_videos() {
+  public function get_structure($limit_type = false, $limit_folder = false) {
     if (count($this->_folders)) {
       foreach($this->_folders as $type => $dir) {
-        foreach($dir as $folder) {
-          switch($type) {
-            case IMDB_M:
-              $structure = isset($folder->structure) ? $folder->structure : false;
-              $structure = false;
-              if ($structure == 'a-z') {
-                for($d = 'A'; $d <= 'Z'; $d++) {
-                  if (is_dir($folder->folder.$d)) {
-                    $this->get_titles($type, $folder->folder.$d);
+        if (!$limit_type || ($limit_type && ((is_array($limit_type) && in_array($type, $limit_type)) || ($type == $limit_type)) )) {
+          foreach($dir as $folder) {
+            if (!$limit_folder || ($limit_folder && ((is_array($limit_folder) && in_array($folder->folder, $limit_folder)) || ($folder->folder == $limit_folder)) )) {
+              switch($type) {
+                case IMDB_M:
+                  $structure = isset($folder->structure) ? $folder->structure : false;
+                  if ($structure == 'a-z') {
+                    for($d = 'A'; $d <= 'Z'; $d++) {
+                      if ($d == 'A' && is_dir($folder->folder.'0-9')) {
+                        $this->get_folders($type, $folder->folder.'0-9');
+                      }
+                      if (is_dir($folder->folder.$d)) {
+                        $this->get_folders($type, $folder->folder.$d);
+                      }
+                    }
+                  } else {
+                    $this->get_folders($type, $folder->folder);
                   }
-                }
-              } else {
-                $this->get_titles($type, $folder->folder);
+                break;
+                case IMDB_S:
+                  $this->get_folders($type, $folder->folder);
+                break;
+                case IMDB_O:
+                  $this->get_folders($type, $folder->folder);
+                break;
               }
-            break;
-            case IMDB_S:
-              $this->get_titles($type, $folder->folder);
-            break;
-            case IMDB_O:
-              $this->{'_'.$type}[] = array(
-                'title' => 'Other',
-                'path' => $folder->folder,
-                'files' => $this->get_files($type, $folder->folder, ''),
-              );
-            break;
+            }
           }
         }
       }
@@ -126,45 +127,85 @@ class datacapture {
     return $this;
   }
 
-  private function get_titles($type, $dir) {
-    $titles = array();
+  private function get_folders($type, $dir) {
     if ($d = @dir($dir)) {
-      while (false !== ($entry = $d->read())) {
-        if (substr($entry, 0, 1) != '.') {
-          $this->{'_'.$type}[] = array(
-            'title' => $entry,
-            'path' => $dir.$entry,
-            'files' => $this->get_files($type, $dir.'/'.$entry.'/', $entry),
-          );
-        }
-      }
-    }
-    return $titles;
-  }
-
-  private function get_files($type, $dir, $title) {
-    $files = array();
-    if ($d = @dir($dir)) {
-      $getID3 = new getID3();
       while (false !== ($entry = $d->read())) {
         if (substr($entry, 0, 1) != '.') {
           if (is_dir($dir.$entry)) {
-            $files[$entry] = $this->get_files($type, $dir.$entry.'/', $title);
+            $this->{'_'.$type}[] = $this->folder_object($dir.$entry, $entry);
           } else {
-            $files[] = array(
-              'valid' => $this->check_file($type, $entry, $title),
-              'file' => $dir.$entry,
-              'info' => (in_array($this->check_file($type, $entry, $title), array(0, 1))) ? $this->core->array_to_object($getID3->format_analyze($dir.'/'.$entry)) : '',
-            );
+            $this->{'_'.$type}[] = $this->file_object($type, $dir.$entry, $entry);
           }
         }
       }
     }
+    return $this;
+  }
 
+  private function get_files($type = false, $folder = false) {
+    foreach($this->_types as $_type) {
+      if (!$type || ($type && $_type == $type)) {
+        foreach($this->{'_'.$_type} as $key => $value) {
+
+        }
+      }
+    }
+    return $this;
+  }
+
+  private function _files($type, $dir, $title) {
+    $files = array();
+    if ($d = @dir($dir)) {
+      while (false !== ($entry = $d->read())) {
+        if (substr($entry, 0, 1) != '.') {
+          if (is_dir($dir.$entry)) {
+            $files[$entry] = $this->_files($type, $dir.$entry.'/', $title);
+          } else {
+            $files[] = $this->file_object($type, $dir.$entry, $entry);
+          }
+        }
+      }
+    }
     return $files;
   }
 
-  private function check_file($type, $file, $title) {
+  private function folder_object($folder, $title) {
+    $object = array(
+      'folder' => true,
+      'path' => $folder,
+      'title' => $title,
+    );
+    return $object;
+  }
+
+  private function file_object($type, $folder, $file) {
+    $object = array(
+      'folder' => false,
+      'path' => $folder,
+      'file' => $file,
+      'hash' => $this->get_file_hash($folder),
+      'valid' => $this->check_file($type, $file),
+    );
+    return $object;
+  }
+
+  private function get_info() {
+    $getID3 = new getID3();
+    (in_array($this->check_file($type, $entry), array(0, 1))) ? $this->core->array_to_object($getID3->format_analyze($dir.'/'.$entry)) : '';
+  }
+
+  public function get_file_hash($file) {
+    $hash = false;
+    if (file_exists($file)) {
+      $handle = fopen($file, 'rb');
+      $file_data = md5(fread($handle, 4096));
+      fclose($handle);
+      $hash = md5(filesize($file).$file_data);
+    }
+    return $hash;
+  }
+
+  private function check_file($type, $file) {
     $valid = -1;
     $ext = pathinfo($file, PATHINFO_EXTENSION);
     if (in_array($ext, $this->_extensions['video'])) {
