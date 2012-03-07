@@ -18,7 +18,7 @@ class template extends effects {
     parent::__construct();
     $this->defines('LOADED_TEMPLATE', true);
 
-    $this->set_theme('loader');
+    $this->set_theme('default');
   }
 
   public function set_theme($theme) {
@@ -27,11 +27,9 @@ class template extends effects {
 
   public function load_theme() {
     if (file_exists(SERVER_ROOT.'css/theme/'.$this->_theme.'.less')) {
-      //$this->load_cjs('_css', 'gen', 'theme', 'theme/'.$this->_theme.'.less');
-      $this->load_file('theme/'.$this->_theme.'.less');
+      $this->load_cjs('_css', 'less', 'theme', SERVER_ROOT.'css/theme/'.$this->_theme.'.less');
     } else if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/theme/'.$this->_theme.'.less')) {
-      //$this->load_cjs('_css', 'app', $this->_current_app, 'theme/'.$this->_theme.'.less');
-      $this->load_file($this->_current_app.'/theme/'.$this->_theme.'.less');
+      $this->load_cjs('_css', 'less', 'theme', SERVER_ROOT.'apps/'.$this->_current_app.'/theme/'.$this->_theme.'.less');
     }
   }
 
@@ -56,6 +54,7 @@ class template extends effects {
   }
 
   public function execute_template() {
+    $this->load_theme();
     ob_start();
     require_once(SERVER_ROOT.'apps/'.$this->_current_app.'/'.$this->_current_page.'.php'); echo "\n";
     $this->_full_page->content = ob_get_contents();
@@ -328,10 +327,10 @@ class template extends effects {
     $this->_css = '';
     $this->_js = '';
   }
-  
+
   public function combine_cjs($_type = false) {
-    $this->_css = isset($_SESSION['gva_framework']['_css']) ? $_SESSION['gva_framework']['_css'] : $this->_css;
-    $this->_js = isset($_SESSION['gva_framework']['_js']) ? $_SESSION['gva_framework']['_js'] : $this->_js;
+    $this->_css = (object) (isset($_SESSION['gva_framework']['_css']) ? ((array) $this->_css + (array) $_SESSION['gva_framework']['_css']) : $this->_css);
+    $this->_js = (object) (isset($_SESSION['gva_framework']['_js']) ? ((array) $this->_js + (array) $_SESSION['gva_framework']['_js']) : $this->_js);
 
     if ($_type) {
       $contents = '';
@@ -340,19 +339,31 @@ class template extends effects {
         foreach ($this->$_types as $type => $loader) {
           foreach ($loader as $name => $file) {
             if ($file) {
-              if ($type == 'gen') {
-                $cjs_file = $this->_files->$_type.$file;
-              } else if ($type == 'app') {
-                $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
-                $cjs_file = $this->_files->$type.$name.'/'.$cjs;
-              } else {
-                $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
-                $cjs_file = $this->_files->$type.$name.'/'.$_type.'/'.$cjs;
+              switch($type) {
+                case 'gen':
+                  $cjs_file = $this->_files->$_type.$file;
+                break;
+                case 'app':
+                  $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
+                  $cjs_file = $this->_files->$type.$name.'/'.$cjs;
+                break;
+                case 'less':
+                  $cjs_file = $file;
+                break;
+                default:
+                  $cjs = ($file === true) ? (($_type == 'css') ? 'style.css' : 'script.js') : $file;
+                  $cjs_file = $this->_files->$type.$name.'/'.$_type.'/'.$cjs;
+                break;
               }
+
               if ($_type == 'css') {
-                $contents .= file_get_contents($cjs_file)."\n\n";
+                if ($type == 'less') {
+                  $contents .= $this->array_to_object(lessc::cexecute($cjs_file))->compiled;
+                } else {
+                  $contents .= file_get_contents($cjs_file)."\n\n";
+                }
               } else {
-                $contents .= file_get_contents($cjs_file)."\n\n";
+                $contents .= JSMin::minify(file_get_contents($cjs_file))."\n\n";
               }
             }
           }

@@ -18,13 +18,13 @@ $output = $_REQUEST;
     <div class="sidebar">
       <div class="well">
         <h4>Drives</h4>
-
         <?php $this->load_module('folders'); ?>
-
       </div>
     </div>
     <div class="content">
-      <div class="hero-unit"><?php printR($output); ?></div>
+      <div class="hero-unit">
+        <?php printR($output); ?>
+      </div>
     </div>
   </div>
 <!-- footer -->

@@ -1,6 +1,6 @@
 /**
  * @ver 1.0
- * jQuery View Templates
+ * @name jQuery View Templates
  */
 var TemplateCore = Class.create({
   template: '',
@@ -70,7 +70,7 @@ var TplFileList = Class.create({
       }
       me.core.render = '<div class="tpl-file-list">' + me.core.render + '</div>';
       me.core.renderViewInto(me.core.target);
-      hiddenData();
+      me.hiddenData();
     });
   },
 
@@ -83,5 +83,15 @@ var TplFileList = Class.create({
         this.getFiles(core, file);
       }
     }
+  },
+
+  hiddenData: function() {
+    jQuery('[data-hidden]').each(function(i, data) {
+      if (!jQuery(data).parent().hasClass('hidden-data-container')) {
+        jQuery(data).before('<div class="hidden-data-container"><div class="hidden-data-show"></div><div class="hidden-data-title">' + jQuery(data).attr('data-hidden') + '</div></div>');
+        jQuery(data).prev().append(jQuery(data).outerHTML());
+        jQuery(data).remove();
+      }
+    });
   }
 });

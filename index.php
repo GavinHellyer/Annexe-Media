@@ -28,13 +28,6 @@ if (isset($_REQUEST['ajax_call'])) {
   $core->call_ajax();
 }
 
-$core->load_cjs('_js', 'gen', 'jquery', 'jquery.js');
-$core->load_cjs('_js', 'gen', 'less', 'less.js');
-$core->load_cjs('_js', 'gen', 'isotope', 'jquery.isotope.min.js');
-$core->load_cjs('_js', 'gen', 'core', 'core.js');
-$core->load_cjs('_js', 'gen', 'template', 'template/loader.js');
-$core->load_cjs('_js', 'gen', 'global', 'global.js');
-
 $core->load_base_template();
 
 if (isset($_REQUEST['page'])) {
