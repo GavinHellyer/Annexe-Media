@@ -1,7 +1,36 @@
-This is still very much a work in progress so please dont say anything bad...
+The idea behind this is to create a video database on my Seagate GoFlex Home,
+and thus it became a project to make a very light weight site that could run on there,
+but also use some fun frameworks/languages.
 
-The idea behind this is to create a video database on my GoFlex Home,
-and thus became a project to make a very light weight site that could run,
-but also use some kewl new techs.
 
-This project has changed many times and I can see it changing more and more :)
+Languages:
+  Javascript (jQuery)
+  CSS (LESS)
+  PHP
+
+
+GoFlex Home Setup:
+  Needed to add GD lib (Custom compiled)
+  Setup the websites document folder in apache
+    - Make sure you tell it to ignore .htaccess files (AllowOverride none)
+  Add the .htaccess data into apache (As Openstora uses PHP CGI)
+
+
+Current Progress:
+  Gets IMDB Data (Movies/Series+Episodes)
+  Saves Data to an SQLite DB (No DB install required)
+  Reads Folder and File Structures of Hard Drives
+  Gets File Information (Codex, Bitrate, Resolution, etc)
+  Validates File Names (I'm quite OCD about my naming conventions)
+    - Series: <Name> - S##E## - <Episode Name>.<ext>
+    - Movie: <Name>.<ext>
+
+
+ToDo:
+  Write File Information with a File Hash (Unique ID) to the DB
+  Create Whole Front End (Web and Samsung Smart TV Versions)
+
+  Figure Out:
+    - A way of doing a Last Reference Point to a File
+    - The best way to manage the Admin Side (For renaming files, loading information, etc)
+    - If it is possible to use this on a Mede8er
