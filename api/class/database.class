@@ -45,7 +45,6 @@ class database extends security {
       if (PEAR::isError($this->_db)) {
         return $this->error($this->_db->getMessage());
       } else {
-        $this->backup();
         return true;
       }
     }
@@ -73,6 +72,8 @@ class database extends security {
   
   public function execute($query = false, $return = true) {
     if ($query) {
+      $this->backup();
+
       $sql =& $this->_db->query($query);
 
       if ($sql && PEAR::isError($sql)) {
