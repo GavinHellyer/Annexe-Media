@@ -9,8 +9,8 @@ Languages:
   PHP
 
 
-GoFlex Home Setup:
-  Needed to add GD lib (Custom compiled)
+GoFlex Home Setup: [http://www.openstora.com/]
+  Needed to add GD lib (Custom compiled) [/lib/gd.rar]
   Setup the websites document folder in apache
     - Make sure you tell it to ignore .htaccess files (AllowOverride none)
   Add the .htaccess data into apache (As Openstora uses PHP CGI)
