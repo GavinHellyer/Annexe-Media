@@ -12,7 +12,9 @@ class template extends effects {
   private $_js;
   private $_actions;
   private $_theme;
+  private $_import_dir;
   public $app;
+  public $less;
 
   public function __construct() {
     parent::__construct();
@@ -27,8 +29,10 @@ class template extends effects {
 
   public function load_theme() {
     if (file_exists(SERVER_ROOT.'css/theme/'.$this->_theme.'.less')) {
+      $this->_import_dir = SERVER_ROOT.'css/theme/';
       $this->load_cjs('_css', 'less', 'theme', SERVER_ROOT.'css/theme/'.$this->_theme.'.less');
     } else if (file_exists(SERVER_ROOT.'apps/'.$this->_current_app.'/theme/'.$this->_theme.'.less')) {
+      $this->_import_dir = SERVER_ROOT.'apps/'.$this->_current_app.'/theme/';
       $this->load_cjs('_css', 'less', 'theme', SERVER_ROOT.'apps/'.$this->_current_app.'/theme/'.$this->_theme.'.less');
     }
   }
@@ -62,6 +66,7 @@ class template extends effects {
     
     $_SESSION['gva_framework']['_css'] = $this->_css;
     $_SESSION['gva_framework']['_js'] = $this->_js;
+    $_SESSION['gva_framework']['_import_dir'] = $this->_import_dir;
 
     if ($this->has_errors()) {
       printR($this->get_errors());
@@ -331,6 +336,7 @@ class template extends effects {
   public function combine_cjs($_type = false) {
     $this->_css = (object) (isset($_SESSION['gva_framework']['_css']) ? ((array) $this->_css + (array) $_SESSION['gva_framework']['_css']) : $this->_css);
     $this->_js = (object) (isset($_SESSION['gva_framework']['_js']) ? ((array) $this->_js + (array) $_SESSION['gva_framework']['_js']) : $this->_js);
+    $this->_import_dir = isset($_SESSION['gva_framework']['_import_dir']) ? $_SESSION['gva_framework']['_import_dir'] : $this->_import_dir;
 
     if ($_type) {
       $contents = '';
@@ -358,10 +364,10 @@ class template extends effects {
 
               if ($_type == 'css') {
                 if ($type == 'less') {
-                  $contents .= $this->array_to_object(lessc::cexecute($cjs_file))->compiled;
-                } else {
-                  $contents .= file_get_contents($cjs_file)."\n\n";
+                  $this->less = new lessc();
+                  $this->less->importDir = $this->_import_dir;
                 }
+                $contents .= file_get_contents($cjs_file)."\n\n";
               } else {
                 $contents .= JSMin::minify(file_get_contents($cjs_file))."\n\n";
               }

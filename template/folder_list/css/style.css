@@ -6,4 +6,5 @@
   text-transform: uppercase;
   font-weight: bold;
   margin-left: -10px;
+  color: @color1;
 }
