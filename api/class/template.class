@@ -369,7 +369,8 @@ class template extends effects {
                 }
                 $contents .= file_get_contents($cjs_file)."\n\n";
               } else {
-                $contents .= JSMin::minify(file_get_contents($cjs_file))."\n\n";
+                //$contents .= JSMin::minify(file_get_contents($cjs_file))."\n\n";
+                $contents .= file_get_contents($cjs_file)."\n\n";
               }
             }
           }

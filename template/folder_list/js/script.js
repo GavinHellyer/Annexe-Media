@@ -10,7 +10,6 @@ jQuery(function($) {
       data: { limit_type: limit_type, limit_folder: limit_folder },
       loader: '.hero-unit',
       finished: function(data) {
-        console.log(data);
         var tpl = new TplFileList(data, jQuery('.hero-unit'));
         tpl.render();
       }

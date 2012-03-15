@@ -10,7 +10,7 @@ $core->load_cjs('_js', 'gen', 'spinner', 'core/spinner.js');
 
 #Load the custom Class Files
 $core->load_cjs('_js', 'gen', 'template', 'class/template.js');
-$core->load_cjs('_js', 'gen', 'template', 'class/ajax.js');
+$core->load_cjs('_js', 'gen', 'ajax', 'class/ajax.js');
 
 #Load the general Files
 $core->load_cjs('_js', 'gen', 'global', 'global.js');

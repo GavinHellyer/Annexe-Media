@@ -22,18 +22,20 @@ jQuery.fn.format = function(options) {
 };
 
 var formatString = function(string, type, format) {
-  var old_string = string;
-  switch(type) {
-    case 'folder':
-      switch(format) {
-        case 'normal':
-          var matches = string.match(/^(([a-z][:][\/]?)||([\/][a-z]+[\/]))?(.*)([\/][a-zA-Z0-9-_\.\[\]\,\'\(\)\s]+[\/]?)$/i);
-          if (matches && (matches[1] + matches[5] != string)) {
-            string = matches[1] + '...' + matches[5];
-          }
-          break;
-      }
-      break;
+  if (string != undefined && string.length) {
+    var old_string = string;
+    switch(type) {
+      case 'folder':
+        switch(format) {
+          case 'normal':
+            var matches = string.match(/^(([a-z][:][\/]?)||([\/][a-z]+[\/]))?(.*)([\/][a-zA-Z0-9-_\.\[\]\,\'\(\)\s]+[\/]?)$/i);
+            if (matches && (matches[1] + matches[5] != string)) {
+              string = matches[1] + '...' + matches[5];
+            }
+            break;
+        }
+        break;
+    }
   }
   return string;
 };

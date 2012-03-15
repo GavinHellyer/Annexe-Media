@@ -6,7 +6,8 @@ define('SERVER_HOST', "http://".$_SERVER['HTTP_HOST'].str_replace('index.php', '
 require_once('../api/api.php');
 
 $less = $core->combine_cjs($_type);
-$contents = CssMin::minify($core->less->parse($less));
+//$contents = CssMin::minify($core->less->parse($less));
+$contents = $core->less->parse($less);
 
 header('Content-Type: text/css');
 header('Content-Length: '.strlen($contents));

@@ -64,10 +64,7 @@ var TplFileList = Class.create({
     this.core.getTemplate(function(view) {
       me.core.view = view;
       var data = me.core.data.data
-      for (var loc in data) {
-        var files = data[loc].files;
-        me.getFiles(me.core, files);
-      }
+      me.getFiles(me.core, data);
       me.core.render = '<div class="tpl-file-list">' + me.core.render + '</div>';
       me.core.renderViewInto(me.core.target);
       me.hiddenData();
@@ -77,10 +74,15 @@ var TplFileList = Class.create({
   getFiles: function(core, files) {
     for (var index in files) {
       var file = files[index];
-      if (file.file != undefined) {
-        core.render += core.replaceViewItem(file);
+      if (file.folder == true) {
+        if (file.files != undefined) {
+          this.getFiles(core, file);
+        } else {
+          file.file = file.title;
+          core.render += core.replaceViewItem(file);
+        }
       } else {
-        this.getFiles(core, file);
+        core.render += core.replaceViewItem(file);
       }
     }
   },
